@@ -17,46 +17,48 @@ NOTE: Run in VS using x64 platform.
 void load_graph_from_edge_list_file(int*, int*, char*);
 void print_debug(char*);
 void print_debug(char*, int);
-void print_edge_list(int*, int*);
-void convert_coo_to_csr_format(int*, int*);
+void print_coo(int*, int*);
+void print_csr(int*, int*);
+void convert_coo_to_csr_format(int*, int*, int*, int*);
+void check(nvgraphStatus_t);
 
 int main() {
-	
 	int* source_vertices;
 	int* target_vertices;
 	char* file_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
-
+	
 	source_vertices = (int*) malloc(sizeof(int) * SIZE_EDGES);
 	target_vertices = (int*) malloc(sizeof(int) * SIZE_EDGES);
 
 	// Read an input graph into a COO format.
 	load_graph_from_edge_list_file(source_vertices, target_vertices, file_path);
 	
-	// print_edge_list(source_vertices, target_vertices);
+	// print_coo(source_vertices, target_vertices);
 
 	// Convert the COO graph into a CSR format
-	convert_coo_to_csr_format(source_vertices, target_vertices);
+	int* h_indices;
+	int* h_offsets;
+	h_indices = (int*)malloc(SIZE_EDGES * sizeof(int));
+	h_offsets = (int*)malloc((SIZE_VERTICES + 1) * sizeof(int));
+	convert_coo_to_csr_format(source_vertices, target_vertices, h_indices, h_offsets);
+	
+	print_csr(h_indices, h_offsets);
 
 	// Cleanup
 	free(source_vertices);
 	free(target_vertices);
 
+	free(h_indices);
+	free(h_offsets);
+
 	return 0;
 }
 
-void check(nvgraphStatus_t status) {
-	if (status != NVGRAPH_STATUS_SUCCESS) {
-		printf("%d", nvgraphStatusGetString(status));
-		system("PAUSE");
-		exit(0);
-	}
-}
-
 /*
-Using nvGraph for conversion
+Fast conversion to CSR - Using nvGraph for conversion
 Modified from: github.com/bmass02/nvGraphExample
 */
-void convert_coo_to_csr_format(int* source_vertices, int* target_vertices) {
+void convert_coo_to_csr_format(int* source_vertices, int* target_vertices, int* h_indices, int* h_offsets) {
 	printf("\nConvert COO to CSR format");
 
 	// First setup the COO format from the input (source_vertices and target_vertices array)
@@ -64,8 +66,6 @@ void convert_coo_to_csr_format(int* source_vertices, int* target_vertices) {
 	nvgraphGraphDescr_t graph;
 	nvgraphCreate(&handle);
 	nvgraphCreateGraphDescr(handle, &graph);
-
-	//nvgraphGraphDescr graph;
 	nvgraphCOOTopology32I_t cooTopology = (nvgraphCOOTopology32I_t) malloc(sizeof(struct nvgraphCOOTopology32I_st));
 	cooTopology->nedges = SIZE_EDGES;
 	cooTopology->nvertices = SIZE_VERTICES;
@@ -77,58 +77,37 @@ void convert_coo_to_csr_format(int* source_vertices, int* target_vertices) {
 	cudaMemcpy(cooTopology->source_indices, source_vertices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(cooTopology->destination_indices, target_vertices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice);
 	
-	/* ==== EDGE DATA  ====*/
-	// Add edge data(1 for all weights for now) (maybe this is redundant? like with destination edge data)
+	// Edge data (allocated, but not used)
 	cudaDataType_t data_type = CUDA_R_32F;
-	float *h_edge_data = (float*)malloc(sizeof(float)*SIZE_EDGES);
-	for (int i = 0; i < SIZE_EDGES; i++) {
-		h_edge_data[i] = 1.0f;
-	}
-
-	// Add edge data on device
 	float* d_edge_data;
 	float* d_destination_edge_data;
-	cudaMalloc((void**)&d_edge_data, sizeof(float) * SIZE_EDGES);
-	cudaMalloc((void**)&d_destination_edge_data, sizeof(float) * SIZE_EDGES);
-
-	cudaMemcpy(d_edge_data, h_edge_data, sizeof(float) * SIZE_EDGES, cudaMemcpyHostToDevice);
-	/*=====================*/
+	cudaMalloc((void**)&d_edge_data, sizeof(float) * SIZE_EDGES); // Note, only allocate this for 1 float
+	cudaMalloc((void**)&d_destination_edge_data, sizeof(float) * SIZE_EDGES); // Note, only allocate this for 1 float
 
 	// Convert COO to a CSR format
-	int *indices_h, *offsets_h, **indices_d, **offsets_d;
-	nvgraphCSRTopology32I_t csrTopology = (nvgraphCSRTopology32I_t)malloc(sizeof(struct nvgraphCSRTopology32I_st));
-	indices_d = &(csrTopology->destination_indices);
-	offsets_d = &(csrTopology->source_offsets);
+	int **d_indices, **d_offsets;
+	nvgraphCSRTopology32I_t csrTopology = (nvgraphCSRTopology32I_t) malloc(sizeof(struct nvgraphCSRTopology32I_st));
+	d_indices = &(csrTopology->destination_indices);
+	d_offsets = &(csrTopology->source_offsets);
 
-	cudaMalloc((void**)(indices_d), SIZE_EDGES * sizeof(int));
-	cudaMalloc((void**)(offsets_d), (SIZE_VERTICES + 1) * sizeof(int));
-	indices_h = (int*)malloc(SIZE_EDGES * sizeof(int));
-	offsets_h = (int*)malloc((SIZE_VERTICES + 1) * sizeof(int));
+	cudaMalloc((void**) d_indices, SIZE_EDGES * sizeof(int));
+	cudaMalloc((void**) d_offsets, (SIZE_VERTICES + 1) * sizeof(int));
 
 	check(nvgraphConvertTopology(handle, NVGRAPH_COO_32, cooTopology, d_edge_data, &data_type, NVGRAPH_CSR_32, csrTopology, d_destination_edge_data));
 
-	// Copy data to the host
-	cudaMemcpy(indices_h, *indices_d, SIZE_EDGES * sizeof(int), cudaMemcpyDeviceToHost);
-	cudaMemcpy(offsets_h, *offsets_d, (SIZE_VERTICES + 1) * sizeof(int), cudaMemcpyDeviceToHost);
-	//cudaMemcpy(edge_data_h, dst_edge_data_d, nedges * sizeof(float), cudaMemcpyDeviceToHost);
-
-	printf("\mINDICES:\n");
-	for (int i = 0; i < SIZE_EDGES;i++) {
-		printf("%d, ", indices_h[i]);
-	}
-
-	printf("\nOFFSETS:\n");
-	for (int i = 0; i < SIZE_VERTICES+1; i++) {
-		printf("%d, ", offsets_h[i]);
-	}
-
-	cudaFree(indices_d);
-	cudaFree(offsets_d);
+	// Copy data to the host (without edge data)
+	cudaMemcpy(h_indices, *d_indices, SIZE_EDGES * sizeof(int), cudaMemcpyDeviceToHost);
+	cudaMemcpy(h_offsets, *d_offsets, (SIZE_VERTICES + 1) * sizeof(int), cudaMemcpyDeviceToHost);
+	
+	// Clean up (Data allocated on device and both topologies, since we only want to work with indices and offsets for now)
+	cudaFree(d_indices);
+	cudaFree(d_offsets);
 	cudaFree(d_edge_data);
 	cudaFree(d_destination_edge_data);
 	cudaFree(cooTopology->destination_indices);
 	cudaFree(cooTopology->source_indices);
-	free(cooTopology);
+	free(cooTopology); 
+	free(csrTopology);
 }
 
 /*
@@ -139,7 +118,6 @@ void load_graph_from_edge_list_file(int* source_vertices, int* target_vertices, 
 
 	FILE* file = fopen(file_path, "r");
 	char line[256];
-
 	int edge_index = 0;
 
 	while (fgets(line, sizeof(line), file)) {
@@ -169,9 +147,28 @@ void load_graph_from_edge_list_file(int* source_vertices, int* target_vertices, 
 	fclose(file);
 }
 
-void print_edge_list(int* source_vertices, int* end_vertices) {
+void print_coo(int* source_vertices, int* end_vertices) {
 	for (int i = 0; i < SIZE_EDGES; i++) {
 		printf("\n%d, %d", source_vertices[i], end_vertices[i]);
+	}
+}
+
+void print_csr(int* h_indices, int* h_offsets) {
+	printf("\nRow Offsets (Vertex Table):\n");
+	for (int i = 0; i < SIZE_VERTICES + 1; i++) {
+		printf("%d, ", h_offsets[i]);
+	}
+
+	printf("\nColumn Indices (Edge Table):\n");
+	for (int i = 0; i < SIZE_EDGES; i++) {
+		printf("%d, ", h_indices[i]);
+	}
+}
+
+void check(nvgraphStatus_t status) {
+	if (status != NVGRAPH_STATUS_SUCCESS) {
+		printf("ERROR : %d\n", status);
+		exit(0);
 	}
 }
 
