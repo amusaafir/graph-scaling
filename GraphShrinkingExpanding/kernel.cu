@@ -22,6 +22,18 @@ void print_csr(int*, int*);
 void convert_coo_to_csr_format(int*, int*, int*, int*);
 void check(nvgraphStatus_t);
 
+__global__
+void loopThroughVertexNeighbours(int* offsets, int* indices, int MAX_VERTEX_SIZE) {
+	int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
+	int neighbor_index_end_offset = blockIdx.x * blockDim.x + threadIdx.x + 1;
+
+	printf("\nVertex: %d, start: %d, end: %d", neighbor_index_start_offset, offsets[neighbor_index_start_offset], offsets[neighbor_index_end_offset]);
+
+	for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
+		printf("\n\tVertex: %d has Neighbor: %d", blockIdx.x * blockDim.x + threadIdx.x, indices[n]);
+	}
+}
+
 int main() {
 	int* source_vertices;
 	int* target_vertices;
@@ -99,6 +111,8 @@ void convert_coo_to_csr_format(int* source_vertices, int* target_vertices, int* 
 	cudaMemcpy(h_indices, *d_indices, SIZE_EDGES * sizeof(int), cudaMemcpyDeviceToHost);
 	cudaMemcpy(h_offsets, *d_offsets, (SIZE_VERTICES + 1) * sizeof(int), cudaMemcpyDeviceToHost);
 	
+	loopThroughVertexNeighbours<<<1, SIZE_VERTICES>>>(*d_offsets, *d_indices, SIZE_VERTICES);
+
 	// Clean up (Data allocated on device and both topologies, since we only want to work with indices and offsets for now)
 	cudaFree(d_indices);
 	cudaFree(d_offsets);
@@ -108,6 +122,7 @@ void convert_coo_to_csr_format(int* source_vertices, int* target_vertices, int* 
 	cudaFree(cooTopology->source_indices);
 	free(cooTopology); 
 	free(csrTopology);
+	
 }
 
 /*
