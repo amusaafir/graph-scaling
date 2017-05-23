@@ -19,8 +19,8 @@ NOTE: Run in VS using x64 platform.
 #include <unordered_set>
 #include <random>
 
-#define SIZE_VERTICES 9 //20
-#define SIZE_EDGES 20 //72 NOTE IF YOU AUTOMATE THIS, MAKE SURE TO CHECK WHETHER THE EDGE DATA DEVICE ARRAY STILL WORKS.
+#define SIZE_VERTICES 281903 //20
+#define SIZE_EDGES 2312497 //72 NOTE IF YOU AUTOMATE THIS, MAKE SURE TO CHECK WHETHER THE EDGE DATA DEVICE ARRAY STILL WORKS.
 #define DEBUG_MODE false
 
 void load_graph_from_edge_list_file(int*, int*, char*);
@@ -28,7 +28,9 @@ int get_thread_size();
 int calculate_node_sampled_size(float);
 int get_block_size();
 typedef struct Sampled_Vertices;
+typedef struct Sampled_Vertices_Direct;
 Sampled_Vertices* perform_edge_based_node_sampling_step(int*, int*, float);
+Sampled_Vertices_Direct* perform_edge_based_node_sampling_step_direct(int*, int*, float);
 void print_debug(char*);
 void print_debug(char*, int);
 void print_coo(int*, int*);
@@ -41,30 +43,20 @@ typedef struct Sampled_Vertices {
 	int sampled_vertices_size;
 } Sampled_Vertices;
 
-/*
-__global__
-void loopThroughVertexNeighbours(int* offsets, int* indices, int MAX_VERTEX_SIZE, int* total_num_edges) {
-int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
-int neighbor_index_end_offset = blockIdx.x * blockDim.x + threadIdx.x + 1;
-
-//printf("\nThread %d: between: %d, %d", neighbor_index_start_offset, offsets[neighbor_index_start_offset], offsets[neighbor_index_end_offset]);
-
-for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
-printf("\nEdge: (%d, %d)", neighbor_index_start_offset, indices[n]);
-atomicAdd(total_num_edges, 1);
-}
-}
-*/
+typedef struct Sampled_Vertices_Direct {
+	int* vertices;
+	int sampled_vertices_size;
+} Sampled_Vertices_Direct;
 
 typedef struct {
 	int source, destination;
 } Edge;
 
 __device__ Edge edge_data[SIZE_EDGES];
-__device__ int dev_count = 0;
+__device__ int edge_count = 0;
 
-__device__ int my_push_back(Edge & mt) {
-	int insert_pt = atomicAdd(&dev_count, 1);
+__device__ int push_edge(Edge & mt) {
+	int insert_pt = atomicAdd(&edge_count, 1);
 	if (insert_pt < SIZE_EDGES) {
 		edge_data[insert_pt] = mt;
 		return insert_pt;
@@ -78,19 +70,19 @@ __global__
 void perform_induction_step(int* sampled_vertices, int* sampled_vertices_size, int* offsets, int* indices, unsigned long long* total_num_edges) {
 	int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
 	int neighbor_index_end_offset = blockIdx.x * blockDim.x + threadIdx.x + 1;
-	
+
 	//printf("\nSize: %d", *sampled_vertices_size);
-	
+
 	for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
-		
+
 		//printf("\nEdge: (%d, %d)", neighbor_index_start_offset, indices[n]);
-		
+
 		//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
-		
+
 		bool found_vertex_u = false;
 		bool found_vertex_v = false;
 
-		for (int i = 0; i < *sampled_vertices_size; i++) {
+		for (int i = 0; i < 6000; i++) {
 			if (neighbor_index_start_offset == sampled_vertices[i]) {
 				found_vertex_u = true;
 			}
@@ -99,15 +91,48 @@ void perform_induction_step(int* sampled_vertices, int* sampled_vertices_size, i
 				found_vertex_v = true;
 			}
 		}
-		
+
 		if (found_vertex_u && found_vertex_v) {
-			printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
+			//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
 			Edge edge;
 			edge.source = neighbor_index_start_offset;
 			edge.destination = indices[n];
-			my_push_back(edge);
+			push_edge(edge);
 			atomicAdd(total_num_edges, 1);
 		}
+		found_vertex_u = false;
+		found_vertex_v = false;
+	}
+}
+
+__global__
+void perform_smart_induction_step(int* sampled_vertices, int* sampled_vertices_size, int* offsets, int* indices, unsigned long long* total_num_edges) {
+	int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
+	int neighbor_index_end_offset = blockIdx.x * blockDim.x + threadIdx.x + 1;
+
+	//printf("\nSize: %d", *sampled_vertices_size);
+
+	for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
+		bool found_vertex_u = false;
+		bool found_vertex_v = false;
+
+		if (sampled_vertices[neighbor_index_start_offset] != -1) {
+			found_vertex_u = true;
+		}
+
+		if (sampled_vertices[indices[n]] != -1) {
+			found_vertex_v = true;
+		}
+
+		if (found_vertex_u && found_vertex_v) {
+			//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
+			Edge edge;
+			edge.source = neighbor_index_start_offset;
+			edge.destination = indices[n];
+			push_edge(edge);
+			atomicAdd(total_num_edges, 1);
+		}
+
 		found_vertex_u = false;
 		found_vertex_v = false;
 	}
@@ -120,8 +145,8 @@ int main() {
 	int* source_vertices;
 	int* target_vertices;
 	//char* file_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
-	char* file_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
-	//char* file_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
+	//char* file_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
+	char* file_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
 
 	size_t print_size = (sizeof(int) * SIZE_EDGES) + (3000 * sizeof(int));
 	cudaDeviceSetLimit(cudaLimitPrintfFifoSize, print_size);
@@ -143,7 +168,7 @@ int main() {
 	//print_csr(h_offsets, h_indices);
 
 	// Edge based Node Sampling Step
-	Sampled_Vertices* sampled_vertices = perform_edge_based_node_sampling_step(source_vertices, target_vertices, 0.5);
+	Sampled_Vertices_Direct* sampled_vertices = perform_edge_based_node_sampling_step_direct(source_vertices, target_vertices, 0.5);
 	printf("\nCollected %d vertices.", sampled_vertices->sampled_vertices_size);
 
 	// Induction step (TODO: re-use device memory from CSR conversion)
@@ -154,9 +179,18 @@ int main() {
 	cudaMemcpy(d_indices, h_indices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice);
 	cudaMemcpy(d_offsets, h_offsets, sizeof(int)*(SIZE_VERTICES + 1), cudaMemcpyHostToDevice);
 
+	/*
+	printf("\nThe sampled vertices are:\n");
+	for (int i = 0; i < SIZE_EDGES; i++) {
+		printf("%d, ", sampled_vertices->vertices[i]);
+
+	}
+	printf("\n========================");
+	*/
+
 	int* d_sampled_vertices;
-	cudaMalloc((void**)&d_sampled_vertices, sizeof(int)*sampled_vertices->sampled_vertices_size);
-	cudaMemcpy(d_sampled_vertices, sampled_vertices->vertices, sizeof(int)*(sampled_vertices->sampled_vertices_size), cudaMemcpyHostToDevice);
+	cudaMalloc((void**)&d_sampled_vertices, sizeof(int)*SIZE_EDGES);
+	cudaMemcpy(d_sampled_vertices, sampled_vertices->vertices, sizeof(int)*(SIZE_EDGES), cudaMemcpyHostToDevice);
 
 	int* d_sampled_vertices_size;
 	cudaMalloc(&d_sampled_vertices_size, sizeof(int));
@@ -168,14 +202,14 @@ int main() {
 	unsigned long long* d_init_total_edges;
 	cudaMalloc(&d_init_total_edges, sizeof(unsigned long long));
 	cudaMemcpy(d_init_total_edges, init_total_edges, sizeof(unsigned long long), cudaMemcpyHostToDevice);
-	perform_induction_step <<<get_block_size(), get_thread_size()>>>(d_sampled_vertices, d_sampled_vertices_size, d_offsets, d_indices, d_init_total_edges);
+	perform_smart_induction_step << <get_block_size(), get_thread_size() >> >(d_sampled_vertices, d_sampled_vertices_size, d_offsets, d_indices, d_init_total_edges);
 	unsigned long long* result_total_edges = (unsigned long long*)malloc(sizeof(unsigned long long));
 	cudaMemcpy(result_total_edges, d_init_total_edges, sizeof(unsigned long long), cudaMemcpyDeviceToHost);
 	printf("\nTotal selected edges: %llu\n", (*result_total_edges));
 
 	int dsize;
-	cudaMemcpyFromSymbol(&dsize, dev_count, sizeof(int));
-	if (dsize >= SIZE_EDGES+1) { printf("overflow error\n"); return 1; }
+	cudaMemcpyFromSymbol(&dsize, edge_count, sizeof(int));
+	if (dsize >= SIZE_EDGES + 1) { printf("overflow error\n"); return 1; }
 	printf("d_size: %d", dsize);
 	/*std::vector<Edge> results(dsize);
 	cudaMemcpyFromSymbol(&(results[0]), edge_data, dsize * sizeof(Edge));
@@ -382,12 +416,58 @@ Sampled_Vertices* perform_edge_based_node_sampling_step(int* source_vertices, in
 	int i = 0;
 	for (std::unordered_set<int>::iterator itr = sampled_vertices_set.begin(); itr != sampled_vertices_set.end(); ++itr) {
 		sampled_vertices->vertices[i] = *itr;
-		printf("\nCollected vertex: %d", sampled_vertices->vertices[i]);
+		//printf("\nCollected vertex: %d", sampled_vertices->vertices[i]);
 		i++;
 	}
 	sampled_vertices->sampled_vertices_size = sampled_vertices_set.size();
 
 	sampled_vertices_set = std::unordered_set<int>();
+
+	return sampled_vertices;
+}
+
+Sampled_Vertices_Direct* perform_edge_based_node_sampling_step_direct(int* source_vertices, int* target_vertices, float fraction) {
+	Sampled_Vertices_Direct* sampled_vertices = (Sampled_Vertices_Direct*)malloc(sizeof(Sampled_Vertices_Direct));
+
+	int amount_total_sampled_vertices = calculate_node_sampled_size(fraction);
+
+	std::random_device seeder;
+	std::mt19937 engine(seeder());
+
+	sampled_vertices->vertices = (int*)calloc(SIZE_EDGES, sizeof(int));
+	int collected_amount = 0;
+
+	// TODO: memcpy
+	for (int x = 0; x < SIZE_EDGES; x++) {
+		sampled_vertices->vertices[x] = -1;
+	}
+
+	while (collected_amount <= amount_total_sampled_vertices) {
+		// Pick a random vertex u
+		std::uniform_int_distribution<int> range_edges(0, (SIZE_EDGES - 1)); // Don't select the last element in the offset
+		int random_edge_index = range_edges(engine);
+
+		// Insert u, v 
+
+		if (sampled_vertices->vertices[source_vertices[random_edge_index]] == -1) {
+			sampled_vertices->vertices[source_vertices[random_edge_index]] = source_vertices[random_edge_index];
+			//printf("\nCollected vertex: %d", source_vertices[random_edge_index]);
+			collected_amount++;
+		}
+		if (sampled_vertices->vertices[target_vertices[random_edge_index]] == -1) {
+			sampled_vertices->vertices[target_vertices[random_edge_index]] = target_vertices[random_edge_index];
+			//printf("\nCollected vertex: %d", target_vertices[random_edge_index]);
+			collected_amount++;
+		}
+
+		//sampled_vertices_set.insert(source_vertices[random_edge_index]);
+		//sampled_vertices_set.insert(target_vertices[random_edge_index]);
+	}
+
+	// Copy elements back to a normal array
+
+
+	sampled_vertices->sampled_vertices_size = collected_amount;
 
 	return sampled_vertices;
 }
