@@ -19,8 +19,8 @@ NOTE: Run in VS using x64 platform.
 #include <unordered_set>
 #include <random>
 
-#define SIZE_VERTICES 281903 //20
-#define SIZE_EDGES 2312497 //72 NOTE IF YOU AUTOMATE THIS, MAKE SURE TO CHECK WHETHER THE EDGE DATA DEVICE ARRAY STILL WORKS.
+#define SIZE_VERTICES 9 //20
+#define SIZE_EDGES 20 //72 NOTE IF YOU AUTOMATE THIS, MAKE SURE TO CHECK WHETHER THE EDGE DATA DEVICE ARRAY STILL WORKS.
 #define DEBUG_MODE false
 
 void load_graph_from_edge_list_file(int*, int*, char*);
@@ -90,7 +90,7 @@ void perform_induction_step(int* sampled_vertices, int* sampled_vertices_size, i
 		bool found_vertex_u = false;
 		bool found_vertex_v = false;
 
-		for (int i = 0; i < 6000; i++) {
+		for (int i = 0; i < *sampled_vertices_size; i++) {
 			if (neighbor_index_start_offset == sampled_vertices[i]) {
 				found_vertex_u = true;
 			}
@@ -101,7 +101,7 @@ void perform_induction_step(int* sampled_vertices, int* sampled_vertices_size, i
 		}
 		
 		if (found_vertex_u && found_vertex_v) {
-			//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
+			printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
 			Edge edge;
 			edge.source = neighbor_index_start_offset;
 			edge.destination = indices[n];
@@ -120,8 +120,8 @@ int main() {
 	int* source_vertices;
 	int* target_vertices;
 	//char* file_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
-	//char* file_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
-	char* file_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
+	char* file_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
+	//char* file_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
 
 	size_t print_size = (sizeof(int) * SIZE_EDGES) + (3000 * sizeof(int));
 	cudaDeviceSetLimit(cudaLimitPrintfFifoSize, print_size);
@@ -374,7 +374,7 @@ Sampled_Vertices* perform_edge_based_node_sampling_step(int* source_vertices, in
 
 		// Insert u, v 
 		sampled_vertices_set.insert(source_vertices[random_edge_index]);
-		sampled_vertices_set.insert(source_vertices[random_edge_index]);
+		sampled_vertices_set.insert(target_vertices[random_edge_index]);
 	}
 
 	// Copy elements back to a normal array
@@ -382,7 +382,7 @@ Sampled_Vertices* perform_edge_based_node_sampling_step(int* source_vertices, in
 	int i = 0;
 	for (std::unordered_set<int>::iterator itr = sampled_vertices_set.begin(); itr != sampled_vertices_set.end(); ++itr) {
 		sampled_vertices->vertices[i] = *itr;
-		//printf("\nCollected vertex: %d", sampled_vertices->vertices[i]);
+		printf("\nCollected vertex: %d", sampled_vertices->vertices[i]);
 		i++;
 	}
 	sampled_vertices->sampled_vertices_size = sampled_vertices_set.size();
