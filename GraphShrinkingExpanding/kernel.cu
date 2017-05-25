@@ -73,7 +73,7 @@ __device__ int push_edge(Edge &edge) {
 }
 
 __global__
-void perform_induction_step(int* sampled_vertices, int* sampled_vertices_size, int* offsets, int* indices) {
+void perform_induction_step(int* sampled_vertices, int* offsets, int* indices) {
 	int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
 	int neighbor_index_end_offset = neighbor_index_start_offset + 1;
 
@@ -132,15 +132,11 @@ int main() {
 	cudaMemcpy(d_offsets, h_offsets, sizeof(int)*(SIZE_VERTICES + 1), cudaMemcpyHostToDevice);
 
 	int* d_sampled_vertices;
-	cudaMalloc((void**)&d_sampled_vertices, sizeof(int)*SIZE_EDGES);
+	cudaMalloc((void**)&d_sampled_vertices, sizeof(int)*SIZE_VERTICES);
 	cudaMemcpy(d_sampled_vertices, sampled_vertices->vertices, sizeof(int)*(SIZE_VERTICES), cudaMemcpyHostToDevice);
 
-	int* d_sampled_vertices_size;
-	cudaMalloc(&d_sampled_vertices_size, sizeof(int));
-	cudaMemcpy(d_sampled_vertices_size, &sampled_vertices->sampled_vertices_size, sizeof(int), cudaMemcpyHostToDevice);
-
 	printf("\nRunning kernel (induction step) with block size %d and thread size %d:", get_block_size(), get_thread_size());
-	perform_induction_step<<<get_block_size(), get_thread_size()>>>(d_sampled_vertices, d_sampled_vertices_size, d_offsets, d_indices);
+	perform_induction_step<<<get_block_size(), get_thread_size()>>>(d_sampled_vertices, d_offsets, d_indices);
 	
 	int h_edge_count;
 	cudaMemcpyFromSymbol(&h_edge_count, d_edge_count, sizeof(int));
@@ -156,7 +152,6 @@ int main() {
 
 	cudaFree(d_offsets);
 	cudaFree(d_indices);
-	cudaFree(d_sampled_vertices_size);
 	cudaFree(d_sampled_vertices);
 
 	// Cleanup
