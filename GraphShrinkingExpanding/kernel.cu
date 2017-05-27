@@ -22,7 +22,7 @@ NOTE: Run in VS using x64 platform.
 #include <unordered_map>
 #include <map>
 
-#define SIZE_VERTICES 281903 //20
+#define SIZE_VERTICES 281903//20
 #define SIZE_EDGES 2312497 //72 NOTE IF YOU AUTOMATE THIS, MAKE SURE TO CHECK WHETHER THE EDGE DATA DEVICE ARRAY STILL WORKS.
 #define ENABLE_DEBUG_LOG false
 
@@ -78,19 +78,13 @@ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices) {
 	int neighbor_index_end_offset = neighbor_index_start_offset + 1;
 
 	for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
-		bool found_vertex_u = sampled_vertices[neighbor_index_start_offset] != -1;
-		bool found_vertex_v = sampled_vertices[indices[n]] != -1;
-
-		if (found_vertex_u && found_vertex_v) {
+		if (sampled_vertices[neighbor_index_start_offset] && sampled_vertices[indices[n]]) {
 			//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
 			Edge edge;
 			edge.source = neighbor_index_start_offset;
 			edge.destination = indices[n];
 			push_edge(edge);
 		}
-
-		found_vertex_u = false;
-		found_vertex_v = false;
 	}
 }
 
@@ -102,15 +96,19 @@ int main() {
 	//char* file_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
 	char* file_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
 	//char* file_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
+	//char* file_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
+	//char* file_path = "C:\\Users\\AJ\\Desktop\\output_test\\facebook_original.txt";
+	//char* file_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
+
 	std::vector<int> source_vertices;
 	std::vector<int> destination_vertices;
 	COO_List* coo_list = load_graph_from_edge_list_file_to_coo(source_vertices, destination_vertices, file_path);
 
-	size_t print_size = (sizeof(int) * SIZE_EDGES) + (3000 * sizeof(int));
-	cudaDeviceSetLimit(cudaLimitPrintfFifoSize, print_size);
+	//size_t print_size = (sizeof(int) * SIZE_EDGES) + (3000 * sizeof(int));
+	//cudaDeviceSetLimit(cudaLimitPrintfFifoSize, print_size);
 
 	// print_coo(source_vertices, target_vertices);
-
+	
 	// Convert the COO graph into a CSR format for the in memory GPU representation
 	int* h_offsets = (int*)malloc((SIZE_VERTICES + 1) * sizeof(int));
 	int* h_indices = (int*)malloc(SIZE_EDGES * sizeof(int));
@@ -148,7 +146,7 @@ int main() {
 	std::vector<Edge> results(h_edge_count);
 	cudaMemcpyFromSymbol(&(results[0]), edge_data, h_edge_count * sizeof(Edge));
 
-	write_output_to_file(results, "C:\\Users\\AJ\\Desktop\\output_test\\outputexample.txt");
+	write_output_to_file(results, "C:\\Users\\AJ\\Desktop\\output_test\\bla.txt");
 
 	cudaFree(d_offsets);
 	cudaFree(d_indices);
@@ -288,7 +286,7 @@ COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertice
 		int source_vertex;
 		int target_vertex;
 
-		sscanf(line, "%d%d\t", &source_vertex, &target_vertex);
+		sscanf(line, "%d%d\s", &source_vertex, &target_vertex);
 
 		// Add vertices to the source and target arrays, forming an edge accordingly
 		
@@ -346,25 +344,19 @@ Sampled_Vertices* perform_edge_based_node_sampling_step(int* source_vertices, in
 	sampled_vertices->vertices = (int*) calloc(SIZE_VERTICES, sizeof(int));
 	int collected_amount = 0;
 
-	// TODO: memcpy
-	for (int x = 0; x < SIZE_VERTICES; x++) {
-		sampled_vertices->vertices[x] = -1;
-	}
-
-	
 	while (collected_amount < amount_total_sampled_vertices) {
 		// Pick a random vertex u
 		std::uniform_int_distribution<int> range_edges(0, (SIZE_EDGES-1)); // Don't select the last element in the offset
 		int random_edge_index = range_edges(engine);
 
-		// Insert u, v 
-		if (sampled_vertices->vertices[source_vertices[random_edge_index]] == -1) {
-			sampled_vertices->vertices[source_vertices[random_edge_index]] = source_vertices[random_edge_index];
+		// Insert u, v (TODO: extract to method per vertex)
+		if (!sampled_vertices->vertices[source_vertices[random_edge_index]]) {
+			sampled_vertices->vertices[source_vertices[random_edge_index]] = 1;
 			print_debug_log("\nCollected vertex:", source_vertices[random_edge_index]);
 			collected_amount++;
 		}
-		if (sampled_vertices->vertices[target_vertices[random_edge_index]] == -1) {
-			sampled_vertices->vertices[target_vertices[random_edge_index]] = target_vertices[random_edge_index];
+		if (!sampled_vertices->vertices[target_vertices[random_edge_index]]) {
+			sampled_vertices->vertices[target_vertices[random_edge_index]] = 1;
 			print_debug_log("\nCollected vertex:", target_vertices[random_edge_index]);
 			collected_amount++;
 		}
