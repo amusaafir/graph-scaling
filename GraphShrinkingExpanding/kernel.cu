@@ -22,13 +22,14 @@ NOTE: Run in VS using x64 platform.
 #include <unordered_map>
 #include <map>
 
-#define SIZE_VERTICES 281903//20
-#define SIZE_EDGES 2312497 //72 NOTE IF YOU AUTOMATE THIS, MAKE SURE TO CHECK WHETHER THE EDGE DATA DEVICE ARRAY STILL WORKS.
-#define ENABLE_DEBUG_LOG false
+#define SIZE_VERTICES 6
+#define SIZE_EDGES 5 
+#define MAX_THREADS 1024
+#define ENABLE_DEBUG_LOG true
 
-typedef struct Sampled_Vertices;
-typedef struct COO_List;
-typedef struct Edge;
+typedef struct Sampled_Vertices sampled_vertices;
+typedef struct COO_List coo_list;
+typedef struct Edge edge;
 void load_graph_from_edge_list_file(int*, int*, char*);
 COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>&, std::vector<int>&, char*);
 int add_vertex_as_coordinate(std::vector<int>&, std::unordered_map<int, int>&, int, int);
@@ -40,6 +41,7 @@ void print_debug_log(char*);
 void print_debug_log(char*, int);
 void print_coo(int*, int*);
 void print_csr(int*, int*);
+void sample_graph(char*, char*, float);
 void convert_coo_to_csr_format(int*, int*, int*, int*);
 void write_output_to_file(std::vector<Edge>&, char* output_path);
 void check(nvgraphStatus_t);
@@ -79,7 +81,7 @@ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices) {
 
 	for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
 		if (sampled_vertices[neighbor_index_start_offset] && sampled_vertices[indices[n]]) {
-			//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
+			printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
 			Edge edge;
 			edge.source = neighbor_index_start_offset;
 			edge.destination = indices[n];
@@ -92,23 +94,28 @@ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices) {
 TODO: Allocate the memory on the GPU only when you need it, after collecting the edge-based node step.
 */
 int main() {
-	//char* file_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
-	//char* file_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
-	char* file_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
-	//char* file_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
-	//char* file_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
-	//char* file_path = "C:\\Users\\AJ\\Desktop\\output_test\\facebook_original.txt";
-	//char* file_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
+	//char* input_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
+	char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\facebook_original.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
 
+	char* output_path = "C:\\Users\\AJ\\Desktop\\output_test\\bla.txt";
+
+	sample_graph(input_path, output_path, 0.5);
+
+	return 0;
+}
+
+void sample_graph(char* input_path, char* output_path, float fraction) {
 	std::vector<int> source_vertices;
 	std::vector<int> destination_vertices;
-	COO_List* coo_list = load_graph_from_edge_list_file_to_coo(source_vertices, destination_vertices, file_path);
-
-	//size_t print_size = (sizeof(int) * SIZE_EDGES) + (3000 * sizeof(int));
-	//cudaDeviceSetLimit(cudaLimitPrintfFifoSize, print_size);
+	COO_List* coo_list = load_graph_from_edge_list_file_to_coo(source_vertices, destination_vertices, input_path);
 
 	// print_coo(source_vertices, target_vertices);
-	
+
 	// Convert the COO graph into a CSR format for the in memory GPU representation
 	int* h_offsets = (int*)malloc((SIZE_VERTICES + 1) * sizeof(int));
 	int* h_indices = (int*)malloc(SIZE_EDGES * sizeof(int));
@@ -118,7 +125,7 @@ int main() {
 	//print_csr(h_offsets, h_indices);
 
 	// Edge based Node Sampling Step
-	Sampled_Vertices* sampled_vertices = perform_edge_based_node_sampling_step(coo_list->source, coo_list->destination, 0.5);
+	Sampled_Vertices* sampled_vertices = perform_edge_based_node_sampling_step(coo_list->source, coo_list->destination, fraction);
 	printf("\nCollected %d vertices.", sampled_vertices->sampled_vertices_size);
 
 	// Induction step (TODO: re-use device memory from CSR conversion)
@@ -134,19 +141,19 @@ int main() {
 	cudaMemcpy(d_sampled_vertices, sampled_vertices->vertices, sizeof(int)*(SIZE_VERTICES), cudaMemcpyHostToDevice);
 
 	printf("\nRunning kernel (induction step) with block size %d and thread size %d:", get_block_size(), get_thread_size());
-	perform_induction_step<<<get_block_size(), get_thread_size()>>>(d_sampled_vertices, d_offsets, d_indices);
-	
+	perform_induction_step << <get_block_size(), get_thread_size() >> >(d_sampled_vertices, d_offsets, d_indices);
+
 	int h_edge_count;
 	cudaMemcpyFromSymbol(&h_edge_count, d_edge_count, sizeof(int));
 	if (h_edge_count >= SIZE_EDGES + 1) {
-		printf("overflow error\n"); return 1; 
+		printf("overflow error\n"); return;
 	}
 
 	printf("\nAmount of edges collected: %d", h_edge_count);
 	std::vector<Edge> results(h_edge_count);
 	cudaMemcpyFromSymbol(&(results[0]), edge_data, h_edge_count * sizeof(Edge));
 
-	write_output_to_file(results, "C:\\Users\\AJ\\Desktop\\output_test\\bla.txt");
+	write_output_to_file(results, output_path);
 
 	cudaFree(d_offsets);
 	cudaFree(d_indices);
@@ -158,7 +165,6 @@ int main() {
 	free(coo_list);
 	free(h_indices);
 	free(h_offsets);
-	return 0;
 }
 
 /*
@@ -217,11 +223,11 @@ void convert_coo_to_csr_format(int* source_vertices, int* target_vertices, int* 
 }
 
 int get_thread_size() {
-	return ((SIZE_VERTICES + 1) > 1024) ? 1024 : SIZE_VERTICES;
+	return ((SIZE_VERTICES + 1) > MAX_THREADS) ? MAX_THREADS : SIZE_VERTICES;
 }
 
 int get_block_size() {
-	return ((SIZE_VERTICES + 1) > 1024) ? ((SIZE_VERTICES / 1024) + 1) : 1;
+	return ((SIZE_VERTICES + 1) > MAX_THREADS) ? ((SIZE_VERTICES / MAX_THREADS) + 1) : 1;
 }
 
 int calculate_node_sampled_size(float fraction) {
@@ -272,7 +278,6 @@ COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertice
 	FILE* file = fopen(file_path, "r");
 	
 	char line[256];
-	int edge_index = 0;
 
 	int current_coordinate = 0;
 
@@ -286,7 +291,7 @@ COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertice
 		int source_vertex;
 		int target_vertex;
 
-		sscanf(line, "%d%d\s", &source_vertex, &target_vertex);
+		sscanf(line, "%d%d\t", &source_vertex, &target_vertex);
 
 		// Add vertices to the source and target arrays, forming an edge accordingly
 		
@@ -302,17 +307,17 @@ COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertice
 	coo_list->source = &source_vertices[0];
 	coo_list->destination = &destination_vertices[0];
 
-	printf("\nTotal amount of vertices: %d", map_from_edge_to_coordinate.size());
-	printf("\Total amount of edges: %d", source_vertices.size());
+	printf("\nTotal amount of vertices: %zd", map_from_edge_to_coordinate.size());
+	printf("\nTotal amount of edges: %zd", source_vertices.size());
 
 	// Print edges
 	/*for (int i = 0; i < source_vertices.size(); i++) {
 		printf("\n(%d, %d)", coo_list->source[i], coo_list->destination[i]);
 	}*/
 
-	return coo_list;
-
 	fclose(file);
+
+	return coo_list;
 }
 
 int add_vertex_as_coordinate(std::vector<int>& vertices_type, std::unordered_map<int, int>& map_from_edge_to_coordinate, int vertex, int coordinate) {
@@ -327,8 +332,6 @@ int add_vertex_as_coordinate(std::vector<int>& vertices_type, std::unordered_map
 
 		return coordinate;
 	}
-
-	return 0;
 }
 
 Sampled_Vertices* perform_edge_based_node_sampling_step(int* source_vertices, int* target_vertices, float fraction) {
