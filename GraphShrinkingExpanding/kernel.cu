@@ -2,12 +2,17 @@
 NOTE: Run in VS using x64 platform.
 
 TODO:
+
+SHRINKING:
 - Look into edge based vs CSR based device.
 - Refactor code (multiple files)
 - Ignore spaces while reading file!
 - Performance improvement loading a graph
 - Count vertices/edges automatically (Can be done later, use globals, need to allocate memory on gpu though in runtime)
 - Load graph should be a separate method
+
+EXPANDING:
+- Force undirected (edge interconnection)
 */
 
 #include "cuda_runtime.h"
@@ -32,8 +37,6 @@ TODO:
 
 #define SIZE_VERTICES 281903
 #define SIZE_EDGES 2312497 
-//#define SIZE_VERTICES 6
-//#define SIZE_EDGES 5 
 #define MAX_THREADS 1024
 #define DEFAULT_EXPANDING_SAMPLE_SIZE 0.5
 #define ENABLE_DEBUG_LOG false
@@ -42,6 +45,7 @@ typedef struct Sampled_Vertices sampled_vertices;
 typedef struct COO_List coo_list;
 typedef struct Edge edge;
 typedef struct Sampled_Graph_Version;
+typedef struct Bridge_Edge;
 void load_graph_from_edge_list_file(int*, int*, char*);
 COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>&, std::vector<int>&, char*);
 int add_vertex_as_coordinate(std::vector<int>&, std::unordered_map<int, int>&, int, int);
@@ -56,6 +60,9 @@ void print_csr(int*, int*);
 void sample_graph(char*, char*, float);
 void convert_coo_to_csr_format(int*, int*, int*, int*);
 void expand_graph(char*, char*, float);
+void link_using_star_topology(Sampled_Graph_Version*, int);
+void add_edge_interconnection_between_graphs(int, Sampled_Graph_Version*, Sampled_Graph_Version*);
+int select_random_bridge_vertex(Sampled_Graph_Version*);
 void write_output_to_file(std::vector<Edge>&, char* output_path);
 void check(nvgraphStatus_t);
 
@@ -77,6 +84,10 @@ typedef struct Sampled_Graph_Version {
 	std::vector<Edge> edges;
 	char label;
 } Sampled_Graph_Version;
+
+typedef struct Bridge_Edge {
+	char* source, destination;
+} Bridge_Edge;
 
 __device__ Edge edge_data[SIZE_EDGES];
 __device__ int d_edge_count = 0;
@@ -345,8 +356,6 @@ COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertice
 		sscanf(line, "%d%d\t", &source_vertex, &target_vertex);
 
 		// Add vertices to the source and target arrays, forming an edge accordingly
-		
-		// You definitely need to make a function out of this one for the destination nodes, since those might be different
 		current_coordinate = add_vertex_as_coordinate(source_vertices, map_from_edge_to_coordinate, source_vertex, current_coordinate);
 		current_coordinate = add_vertex_as_coordinate(destination_vertices, map_from_edge_to_coordinate, target_vertex, current_coordinate);
 	}
@@ -443,7 +452,6 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 
 	Sampled_Vertices** sampled_vertices_per_graph = (Sampled_Vertices**) malloc(sizeof(Sampled_Vertices)*amount_of_sampled_graphs);
 	
-	// Double check whether this is actually correct later.
 	int** d_size_edges = (int**) malloc(sizeof(int*)*amount_of_sampled_graphs);
 	Edge** d_edge_data_expanding = (Edge**) malloc(sizeof(Edge*)*amount_of_sampled_graphs);
 
@@ -508,15 +516,53 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 		delete(sampled_graph_version);
 	}
 
-	printf("\nAfter size now 0: %d with label: %c", sampled_graph_version_list[0].edges.size(), sampled_graph_version_list[0].label);
-	printf("\nAfter size now 1: %d with label: %c", sampled_graph_version_list[1].edges.size(), sampled_graph_version_list[1].label);
-	printf("\nAfter size now 2: %d with label: %c", sampled_graph_version_list[2].edges.size(), sampled_graph_version_list[2].label);
-	printf("\nAfter size now 3: %d with label: %c", sampled_graph_version_list[3].edges.size(), sampled_graph_version_list[3].label);
+	link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs);
 
 	// Cleanup
 	delete[] sampled_graph_version_list;
 	cudaFree(d_edge_data_expanding); // Perhaps these cuda allocations can be freed in the for loop..
 	cudaFree(d_size_edges);
+}
+
+void link_using_star_topology(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs) {
+	/*printf("\nAfter size now 0: %d with label: %c", sampled_graph_version_list[0].edges.size(), sampled_graph_version_list[0].label);
+	printf("\nIs there an actual edge here: (%d, %d)", sampled_graph_version_list[0].edges[0].source, sampled_graph_version_list[0].edges[0].destination);
+	printf("\nAfter size now 1: %d with label: %c", sampled_graph_version_list[1].edges.size(), sampled_graph_version_list[1].label);
+	printf("\nAfter size now 2: %d with label: %c", sampled_graph_version_list[2].edges.size(), sampled_graph_version_list[2].label);
+	printf("\nAfter size now 3: %d with label: %c", sampled_graph_version_list[3].edges.size(), sampled_graph_version_list[3].label);*/
+	
+	Sampled_Graph_Version center_graph = sampled_graph_version_list[0];
+	
+	int amount_of_edge_interconnections = 5;
+	for (int i = 0; i < amount_of_sampled_graphs - 1; i++) {
+		add_edge_interconnection_between_graphs(amount_of_edge_interconnections, &(sampled_graph_version_list[i]), &center_graph);
+	}
+}
+
+/*
+-> Probably parallelizable.
+-> if(amount_of_edge_interconnections<1) = fraction of the edges/nodes?
+*/
+void add_edge_interconnection_between_graphs(int amount_of_edge_interconnections, Sampled_Graph_Version* graph_a, Sampled_Graph_Version* graph_b) {
+	printf("\n============================");
+	for (int i = 0; i < amount_of_edge_interconnections; i++) {
+		int vertex_a = select_random_bridge_vertex(graph_a);
+		int vertex_b = select_random_bridge_vertex(graph_b);
+
+		// Add edge
+		printf("\nSelected (%d, %d)", vertex_a, vertex_b);
+	}
+}
+
+// TODO: Add parameter (e.g. Random/high-degree nodes/low-degree nodes)
+int select_random_bridge_vertex(Sampled_Graph_Version* graph) {
+	// TODO: Move to add_edge_interconnection_between_graphs
+	std::random_device seeder;
+	std::mt19937 engine(seeder());
+	std::uniform_int_distribution<int> range_edges(0, ((*graph).edges.size()) - 1);
+	int random_edge_index = range_edges(engine);
+
+	return (*graph).edges[random_edge_index].destination; // Select destination vertex (perhaps make this 50:50?)
 }
 
 void write_output_to_file(std::vector<Edge>& results, char* ouput_path) {
