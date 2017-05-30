@@ -13,6 +13,7 @@ SHRINKING:
 
 EXPANDING:
 - Force undirected (edge interconnection)
+- Decrease size of char in Bridge_Edge
 */
 
 #include "cuda_runtime.h"
@@ -35,10 +36,17 @@ EXPANDING:
 #include <unordered_map>
 #include <map>
 
-#define SIZE_VERTICES 281903
-#define SIZE_EDGES 2312497 
-//#define SIZE_VERTICES 6
-//#define SIZE_EDGES 5 
+//#define SIZE_VERTICES 281903
+//#define SIZE_EDGES 2312497
+
+//#define SIZE_VERTICES 1632803
+//#define SIZE_EDGES 30622564 
+
+#define SIZE_VERTICES 6
+#define SIZE_EDGES 5
+
+//#define SIZE_VERTICES 4039
+//#define SIZE_EDGES 88234
 #define MAX_THREADS 1024
 #define DEFAULT_EXPANDING_SAMPLE_SIZE 0.5
 #define ENABLE_DEBUG_LOG false
@@ -114,7 +122,7 @@ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices) {
 
 	for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
 		if (sampled_vertices[neighbor_index_start_offset] && sampled_vertices[indices[n]]) {
-			printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
+			//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
 			Edge edge;
 			edge.source = neighbor_index_start_offset;
 			edge.destination = indices[n];
@@ -160,15 +168,17 @@ TODO: Allocate the memory on the GPU only when you need it, after collecting the
 int main() {
 	//char* input_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
-	char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
+	char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\facebook_original.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\roadNet-PA.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
 
-	char* output_path = "C:\\Users\\AJ\\Desktop\\output_test\\expanded_stanford_first_test.txt";
+	char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_small_graph.txt";
 
-	expand_graph(input_path, output_path, 2);
+	expand_graph(input_path, output_path, 3);
 
 	//sample_graph(input_path, output_path, 0.5);
 
@@ -452,12 +462,17 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 
 	convert_coo_to_csr_format(coo_list->source, coo_list->destination, h_offsets, h_indices);
 
-	int amount_of_sampled_graphs = scaling_factor / DEFAULT_EXPANDING_SAMPLE_SIZE;
+	const int amount_of_sampled_graphs = scaling_factor / DEFAULT_EXPANDING_SAMPLE_SIZE;
+
+	printf("Amount of sampled graphs: %d", amount_of_sampled_graphs);
 
 	Sampled_Vertices** sampled_vertices_per_graph = (Sampled_Vertices**) malloc(sizeof(Sampled_Vertices)*amount_of_sampled_graphs);
 	
 	int** d_size_edges = (int**) malloc(sizeof(int*)*amount_of_sampled_graphs);
 	Edge** d_edge_data_expanding = (Edge**) malloc(sizeof(Edge*)*amount_of_sampled_graphs);
+
+	Sampled_Graph_Version* sampled_graph_version_list = new Sampled_Graph_Version[amount_of_sampled_graphs];
+	char current_label = 'a';
 
 	for (int i = 0; i < amount_of_sampled_graphs; i++) {
 		sampled_vertices_per_graph[i] = perform_edge_based_node_sampling_step(coo_list->source, coo_list->destination, DEFAULT_EXPANDING_SAMPLE_SIZE);
@@ -481,8 +496,30 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 
 		cudaMalloc((void**)&d_edge_data_expanding[i], sizeof(Edge)*SIZE_EDGES);
 		
+		cudaDeviceSynchronize();
+
 		printf("\nRunning kernel (induction step) with block size %d and thread size %d:", get_block_size(), get_thread_size());
 		perform_induction_step_expanding <<<get_block_size(), get_thread_size()>>>(d_sampled_vertices, d_offsets, d_indices, d_edge_data_expanding[i], d_size_edges[i]);
+		
+		// Edge size
+		int h_size_edges_result;
+		cudaMemcpy(&h_size_edges_result, d_size_edges[i], sizeof(int), cudaMemcpyDeviceToHost);
+
+		// Edges
+		printf("\nh_size_edges: %d", h_size_edges_result);
+		Sampled_Graph_Version* sampled_graph_version = new Sampled_Graph_Version();
+		(*sampled_graph_version).edges.resize(h_size_edges_result);
+
+		cudaMemcpy(&sampled_graph_version->edges[0], d_edge_data_expanding[i], sizeof(Edge)*(h_size_edges_result), cudaMemcpyDeviceToHost);
+
+		// Label
+		sampled_graph_version->label = current_label++;
+
+		// Copy data to the sampled version list
+		sampled_graph_version_list[i] = (*sampled_graph_version);
+
+		// Cleanup
+		delete(sampled_graph_version);
 		
 		cudaFree(d_sampled_vertices);
 		cudaFree(d_offsets);
@@ -496,33 +533,12 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	free(h_indices);
 	free(h_offsets);
 	
+	printf("\nAfter test: %d", sampled_graph_version_list[0].edges.size());
+
 	// For each sampled graph version, copy the data back to the host
-	Sampled_Graph_Version* sampled_graph_version_list = new Sampled_Graph_Version[amount_of_sampled_graphs];
-	char current_label = 'a';
-
-	for (int i = 0; i < amount_of_sampled_graphs; i++) {
-		// Edge size
-		int h_size_edges;
-		cudaMemcpy(&h_size_edges, d_size_edges[i], sizeof(int), cudaMemcpyDeviceToHost);
-		
-		// Edges
-		Sampled_Graph_Version* sampled_graph_version = new Sampled_Graph_Version();
-		(*sampled_graph_version).edges.resize(h_size_edges);
-		cudaMemcpy(&sampled_graph_version->edges[0], d_edge_data_expanding[i], sizeof(Edge)*(h_size_edges), cudaMemcpyDeviceToHost);
-		
-		// Label
-		sampled_graph_version->label = current_label++;
-		
-		// Copy data to the sampled version list
-		sampled_graph_version_list[i] = (*sampled_graph_version);
-
-		// Cleanup
-		delete(sampled_graph_version);
-	}
-
 	std::vector<Bridge_Edge> bridge_edges;
 	link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
-
+	
 	write_expanded_output_to_file(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges, output_path);
 
 	// Cleanup
@@ -541,7 +557,7 @@ void link_using_star_topology(Sampled_Graph_Version* sampled_graph_version_list,
 	// First sampled version will be the graph in the center
 	Sampled_Graph_Version center_graph = sampled_graph_version_list[0];
 	
-	int amount_of_edge_interconnections = 5;
+	int amount_of_edge_interconnections = 1;
 	for (int i = 1; i < amount_of_sampled_graphs; i++) { // Skip the center graph 
 		add_edge_interconnection_between_graphs(amount_of_edge_interconnections, &(sampled_graph_version_list[i]), &center_graph, bridge_edges);
 	}
