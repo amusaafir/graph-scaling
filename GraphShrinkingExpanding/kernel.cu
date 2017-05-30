@@ -60,8 +60,8 @@ void print_csr(int*, int*);
 void sample_graph(char*, char*, float);
 void convert_coo_to_csr_format(int*, int*, int*, int*);
 void expand_graph(char*, char*, float);
-void link_using_star_topology(Sampled_Graph_Version*, int);
-void add_edge_interconnection_between_graphs(int, Sampled_Graph_Version*, Sampled_Graph_Version*);
+void link_using_star_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
+void add_edge_interconnection_between_graphs(int, Sampled_Graph_Version*, Sampled_Graph_Version*, std::vector<Bridge_Edge>&);
 int select_random_bridge_vertex(Sampled_Graph_Version*);
 void write_output_to_file(std::vector<Edge>&, char* output_path);
 void check(nvgraphStatus_t);
@@ -86,7 +86,8 @@ typedef struct Sampled_Graph_Version {
 } Sampled_Graph_Version;
 
 typedef struct Bridge_Edge {
-	char* source, destination;
+	char source[20];
+	char destination[20];
 } Bridge_Edge;
 
 __device__ Edge edge_data[SIZE_EDGES];
@@ -516,7 +517,11 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 		delete(sampled_graph_version);
 	}
 
-	link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs);
+	std::vector<Bridge_Edge> bridge_edges;
+	link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
+
+	printf("\nFinal: a total of %d bridge edges.", bridge_edges.size());
+	printf("\nTest random edge: (%s, %s)", bridge_edges[0].source, bridge_edges[0].destination);
 
 	// Cleanup
 	delete[] sampled_graph_version_list;
@@ -524,33 +529,42 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	cudaFree(d_size_edges);
 }
 
-void link_using_star_topology(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs) {
+void link_using_star_topology(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges) {
 	/*printf("\nAfter size now 0: %d with label: %c", sampled_graph_version_list[0].edges.size(), sampled_graph_version_list[0].label);
 	printf("\nIs there an actual edge here: (%d, %d)", sampled_graph_version_list[0].edges[0].source, sampled_graph_version_list[0].edges[0].destination);
 	printf("\nAfter size now 1: %d with label: %c", sampled_graph_version_list[1].edges.size(), sampled_graph_version_list[1].label);
 	printf("\nAfter size now 2: %d with label: %c", sampled_graph_version_list[2].edges.size(), sampled_graph_version_list[2].label);
 	printf("\nAfter size now 3: %d with label: %c", sampled_graph_version_list[3].edges.size(), sampled_graph_version_list[3].label);*/
 	
+	// First sampled version will be the graph in the center
 	Sampled_Graph_Version center_graph = sampled_graph_version_list[0];
 	
 	int amount_of_edge_interconnections = 5;
-	for (int i = 0; i < amount_of_sampled_graphs - 1; i++) {
-		add_edge_interconnection_between_graphs(amount_of_edge_interconnections, &(sampled_graph_version_list[i]), &center_graph);
+	for (int i = 1; i < amount_of_sampled_graphs; i++) { // Skip the center graph 
+		add_edge_interconnection_between_graphs(amount_of_edge_interconnections, &(sampled_graph_version_list[i]), &center_graph, bridge_edges);
 	}
+
+	printf("\nCollected a total of %d bridge edges.", bridge_edges.size());
 }
 
 /*
 -> Probably parallelizable.
 -> if(amount_of_edge_interconnections<1) = fraction of the edges/nodes?
 */
-void add_edge_interconnection_between_graphs(int amount_of_edge_interconnections, Sampled_Graph_Version* graph_a, Sampled_Graph_Version* graph_b) {
+void add_edge_interconnection_between_graphs(int amount_of_edge_interconnections, Sampled_Graph_Version* graph_a, Sampled_Graph_Version* graph_b, std::vector<Bridge_Edge>& bridge_edges) {
 	printf("\n============================");
 	for (int i = 0; i < amount_of_edge_interconnections; i++) {
 		int vertex_a = select_random_bridge_vertex(graph_a);
 		int vertex_b = select_random_bridge_vertex(graph_b);
-
+		
+		// TODO: Extract function
 		// Add edge
-		printf("\nSelected (%d, %d)", vertex_a, vertex_b);
+		Bridge_Edge bridge_edge;
+		sprintf(bridge_edge.source, "%c%d", graph_a->label, vertex_a);
+		sprintf(bridge_edge.destination, "%c%d", graph_b->label, vertex_b);
+
+		bridge_edges.push_back(bridge_edge);
+		printf("\nBridge selection - Selected: (%s, %s)", bridge_edge.source, bridge_edge.destination);
 	}
 }
 
