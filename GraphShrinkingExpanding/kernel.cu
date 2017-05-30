@@ -37,6 +37,8 @@ EXPANDING:
 
 #define SIZE_VERTICES 281903
 #define SIZE_EDGES 2312497 
+//#define SIZE_VERTICES 6
+//#define SIZE_EDGES 5 
 #define MAX_THREADS 1024
 #define DEFAULT_EXPANDING_SAMPLE_SIZE 0.5
 #define ENABLE_DEBUG_LOG false
@@ -63,6 +65,7 @@ void expand_graph(char*, char*, float);
 void link_using_star_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
 void add_edge_interconnection_between_graphs(int, Sampled_Graph_Version*, Sampled_Graph_Version*, std::vector<Bridge_Edge>&);
 int select_random_bridge_vertex(Sampled_Graph_Version*);
+void write_expanded_output_to_file(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&, char*);
 void write_output_to_file(std::vector<Edge>&, char* output_path);
 void check(nvgraphStatus_t);
 
@@ -158,12 +161,12 @@ int main() {
 	//char* input_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
 	char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
-	////char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\facebook_original.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
 
-	char* output_path = "C:\\Users\\AJ\\Desktop\\output_test\\expanded_test.txt";
+	char* output_path = "C:\\Users\\AJ\\Desktop\\output_test\\expanded_stanford_first_test.txt";
 
 	expand_graph(input_path, output_path, 2);
 
@@ -520,8 +523,7 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	std::vector<Bridge_Edge> bridge_edges;
 	link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
 
-	printf("\nFinal: a total of %d bridge edges.", bridge_edges.size());
-	printf("\nTest random edge: (%s, %s)", bridge_edges[0].source, bridge_edges[0].destination);
+	write_expanded_output_to_file(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges, output_path);
 
 	// Cleanup
 	delete[] sampled_graph_version_list;
@@ -577,6 +579,29 @@ int select_random_bridge_vertex(Sampled_Graph_Version* graph) {
 	int random_edge_index = range_edges(engine);
 
 	return (*graph).edges[random_edge_index].destination; // Select destination vertex (perhaps make this 50:50?)
+}
+
+void write_expanded_output_to_file(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges, char* ouput_path) {
+	char* file_path = ouput_path;
+	FILE *output_file = fopen(file_path, "w");
+
+	if (output_file == NULL) {
+		printf("\nError writing results to output file.");
+		exit(1);
+	}
+
+	// Write sampled graph versions
+	for (int i = 0; i < amount_of_sampled_graphs; i++) {
+		for (int p = 0; p < sampled_graph_version_list[i].edges.size(); p++) {
+			fprintf(output_file, "\n%c%d\t%c%d", sampled_graph_version_list[i].label, sampled_graph_version_list[i].edges[p].source, sampled_graph_version_list[i].label, sampled_graph_version_list[i].edges[p].destination);
+		}
+	}
+	
+	for (int i = 0; i < bridge_edges.size(); i++) {
+		fprintf(output_file, "\n%s\t%s", bridge_edges[i].source, bridge_edges[i].destination);
+	}
+		
+	fclose(output_file);
 }
 
 void write_output_to_file(std::vector<Edge>& results, char* ouput_path) {
