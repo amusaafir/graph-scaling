@@ -14,6 +14,16 @@ SHRINKING:
 EXPANDING:
 - Force undirected (edge interconnection)
 - Decrease size of char in Bridge_Edge
+- stream expanding <- dont spend much time on this though
+- Linear, line topology
+- High degree nodes (wait til thursday)
+- Make it somewhat nice so that the user can change these properties easily.
+
+DAS5
+- Test run on DAS5
+
+ANALYSIS
+- Check snap tool
 */
 
 #include "cuda_runtime.h"
@@ -36,20 +46,43 @@ EXPANDING:
 #include <unordered_map>
 #include <map>
 
-//#define SIZE_VERTICES 281903
-//#define SIZE_EDGES 2312497
+// Live journal
+//#define SIZE_VERTICES 4847571
+//#define SIZE_EDGES 68993773
 
+// Web-stanford
+#define SIZE_VERTICES 281903
+#define SIZE_EDGES 2312497
+
+// Pokec relationships
 //#define SIZE_VERTICES 1632803
 //#define SIZE_EDGES 30622564 
 
-#define SIZE_VERTICES 6
-#define SIZE_EDGES 5
+// Edge list example
+//#define SIZE_VERTICES 6
+//#define SIZE_EDGES 5
 
+// Com graph
+//#define SIZE_VERTICES 3072441
+//#define SIZE_EDGES 117185083
+
+// Facebook graph
 //#define SIZE_VERTICES 4039
 //#define SIZE_EDGES 88234
+
 #define MAX_THREADS 1024
 #define DEFAULT_EXPANDING_SAMPLE_SIZE 0.5
 #define ENABLE_DEBUG_LOG false
+
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = false)
+{
+	if (code != cudaSuccess)
+	{
+		fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+		if (abort) exit(code);
+	}
+}
 
 typedef struct Sampled_Vertices sampled_vertices;
 typedef struct COO_List coo_list;
@@ -131,9 +164,6 @@ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices) {
 	}
 }
 
-//__device__ Edge edge_data_expanding[SIZE_EDGES];
-//__device__ int d_edge_count_expanding = 0;
-
 __device__ int push_edge_expanding(Edge &edge, Edge* edge_data_expanding, int* d_edge_count_expanding) {
 	int edge_index = atomicAdd(d_edge_count_expanding, 1);
 	if (edge_index < SIZE_EDGES) {
@@ -168,20 +198,22 @@ TODO: Allocate the memory on the GPU only when you need it, after collecting the
 int main() {
 	//char* input_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
-	char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
+	char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\roadNet-PA.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
 
-	char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_small_graph.txt";
-
-	expand_graph(input_path, output_path, 3);
+	char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\expanded_stanford_large_again_3_times_05.txt";
 
 	//sample_graph(input_path, output_path, 0.5);
 
+	expand_graph(input_path, output_path, 3);
+	
 	return 0;
 }
 
@@ -209,12 +241,12 @@ void sample_graph(char* input_path, char* output_path, float fraction) {
 	int* d_indices;
 	cudaMalloc((void**)&d_offsets, sizeof(int)*(SIZE_VERTICES + 1));
 	cudaMalloc((void**)&d_indices, sizeof(int)*SIZE_EDGES);
-	cudaMemcpy(d_indices, h_indices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(d_offsets, h_offsets, sizeof(int)*(SIZE_VERTICES + 1), cudaMemcpyHostToDevice);
+	gpuErrchk(cudaMemcpy(d_indices, h_indices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice));
+	gpuErrchk(cudaMemcpy(d_offsets, h_offsets, sizeof(int)*(SIZE_VERTICES + 1), cudaMemcpyHostToDevice));
 
 	int* d_sampled_vertices;
-	cudaMalloc((void**)&d_sampled_vertices, sizeof(int)*SIZE_VERTICES);
-	cudaMemcpy(d_sampled_vertices, sampled_vertices->vertices, sizeof(int)*(SIZE_VERTICES), cudaMemcpyHostToDevice);
+	gpuErrchk(cudaMalloc((void**)&d_sampled_vertices, sizeof(int)*SIZE_VERTICES));
+	gpuErrchk(cudaMemcpy(d_sampled_vertices, sampled_vertices->vertices, sizeof(int)*(SIZE_VERTICES), cudaMemcpyHostToDevice));
 
 	printf("\nRunning kernel (induction step) with block size %d and thread size %d:", get_block_size(), get_thread_size());
 	perform_induction_step <<<get_block_size(), get_thread_size() >> >(d_sampled_vertices, d_offsets, d_indices);
@@ -260,32 +292,34 @@ void convert_coo_to_csr_format(int* source_vertices, int* target_vertices, int* 
 	cooTopology->nvertices = SIZE_VERTICES;
 	cooTopology->tag = NVGRAPH_UNSORTED;
 
-	cudaMalloc((void**)&cooTopology->source_indices, SIZE_EDGES * sizeof(int));
-	cudaMalloc((void**)&cooTopology->destination_indices, SIZE_EDGES * sizeof(int));
+	gpuErrchk(cudaMalloc((void**)&cooTopology->source_indices, SIZE_EDGES * sizeof(int)));
+	gpuErrchk(cudaMalloc((void**)&cooTopology->destination_indices, SIZE_EDGES * sizeof(int)));
 
-	cudaMemcpy(cooTopology->source_indices, source_vertices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice);
-	cudaMemcpy(cooTopology->destination_indices, target_vertices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice);
+	gpuErrchk(cudaMemcpy(cooTopology->source_indices, source_vertices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice));
+	gpuErrchk(cudaMemcpy(cooTopology->destination_indices, target_vertices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice));
 
 	// Edge data (allocated, but not used)
 	cudaDataType_t data_type = CUDA_R_32F;
 	float* d_edge_data;
 	float* d_destination_edge_data;
-	cudaMalloc((void**)&d_edge_data, sizeof(float) * SIZE_EDGES); // Note: only allocate this for 1 float since we don't have any data yet
-	cudaMalloc((void**)&d_destination_edge_data, sizeof(float) * SIZE_EDGES); // Note: only allocate this for 1 float since we don't have any data yet
+	gpuErrchk(cudaMalloc((void**)&d_edge_data, sizeof(float) * SIZE_EDGES)); // Note: only allocate this for 1 float since we don't have any data yet
+	gpuErrchk(cudaMalloc((void**)&d_destination_edge_data, sizeof(float) * SIZE_EDGES)); // Note: only allocate this for 1 float since we don't have any data yet
 
 	// Convert COO to a CSR format
 	nvgraphCSRTopology32I_t csrTopology = (nvgraphCSRTopology32I_t)malloc(sizeof(struct nvgraphCSRTopology32I_st));
 	int **d_indices = &(csrTopology->destination_indices);
 	int **d_offsets = &(csrTopology->source_offsets);
 
-	cudaMalloc((void**)d_indices, SIZE_EDGES * sizeof(int));
-	cudaMalloc((void**)d_offsets, (SIZE_VERTICES + 1) * sizeof(int));
+	gpuErrchk(cudaMalloc((void**)d_indices, SIZE_EDGES * sizeof(int)));
+	gpuErrchk(cudaMalloc((void**)d_offsets, (SIZE_VERTICES + 1) * sizeof(int)));
 
 	check(nvgraphConvertTopology(handle, NVGRAPH_COO_32, cooTopology, d_edge_data, &data_type, NVGRAPH_CSR_32, csrTopology, d_destination_edge_data));
 
+	gpuErrchk(cudaPeekAtLastError());
+
 	// Copy data to the host (without edge data)
-	cudaMemcpy(h_indices, *d_indices, SIZE_EDGES * sizeof(int), cudaMemcpyDeviceToHost);
-	cudaMemcpy(h_offsets, *d_offsets, (SIZE_VERTICES + 1) * sizeof(int), cudaMemcpyDeviceToHost);
+	gpuErrchk(cudaMemcpy(h_indices, *d_indices, SIZE_EDGES * sizeof(int), cudaMemcpyDeviceToHost));
+	gpuErrchk(cudaMemcpy(h_offsets, *d_offsets, (SIZE_VERTICES + 1) * sizeof(int), cudaMemcpyDeviceToHost));
 
 	// Clean up (Data allocated on device and both topologies, since we only want to work with indices and offsets for now)
 	cudaFree(d_indices);
@@ -444,7 +478,6 @@ Sampled_Vertices* perform_edge_based_node_sampling_step(int* source_vertices, in
 	return sampled_vertices;
 }
 
-
 /*
 =======================================================================================
 Expanding code
@@ -481,36 +514,36 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 		// Induction step (TODO: re-use device memory from CSR conversion)
 		int* d_offsets;
 		int* d_indices;
-		cudaMalloc((void**)&d_offsets, sizeof(int)*(SIZE_VERTICES + 1));
-		cudaMalloc((void**)&d_indices, sizeof(int)*SIZE_EDGES);
-		cudaMemcpy(d_indices, h_indices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice);
-		cudaMemcpy(d_offsets, h_offsets, sizeof(int)*(SIZE_VERTICES + 1), cudaMemcpyHostToDevice);
+		gpuErrchk(cudaMalloc((void**)&d_offsets, sizeof(int)*(SIZE_VERTICES + 1)));
+		gpuErrchk(cudaMalloc((void**)&d_indices, sizeof(int)*SIZE_EDGES));
+		gpuErrchk(cudaMemcpy(d_indices, h_indices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice));
+		gpuErrchk(cudaMemcpy(d_offsets, h_offsets, sizeof(int)*(SIZE_VERTICES + 1), cudaMemcpyHostToDevice));
 
 		int* d_sampled_vertices;
-		cudaMalloc((void**)&d_sampled_vertices, sizeof(int)*SIZE_VERTICES);
-		cudaMemcpy(d_sampled_vertices, sampled_vertices_per_graph[i]->vertices, sizeof(int)*(SIZE_VERTICES), cudaMemcpyHostToDevice);
+		gpuErrchk(cudaMalloc((void**)&d_sampled_vertices, sizeof(int)*SIZE_VERTICES));
+		gpuErrchk(cudaMemcpy(d_sampled_vertices, sampled_vertices_per_graph[i]->vertices, sizeof(int)*(SIZE_VERTICES), cudaMemcpyHostToDevice));
 
 		int* h_size_edges = 0;
-		cudaMalloc((void**)&d_size_edges[i], sizeof(int));
-		cudaMemcpy(d_size_edges[i], &h_size_edges, sizeof(int), cudaMemcpyHostToDevice);
+		gpuErrchk(cudaMalloc((void**)&d_size_edges[i], sizeof(int)));
+		gpuErrchk(cudaMemcpy(d_size_edges[i], &h_size_edges, sizeof(int), cudaMemcpyHostToDevice));
 
-		cudaMalloc((void**)&d_edge_data_expanding[i], sizeof(Edge)*SIZE_EDGES);
+		gpuErrchk(cudaMalloc((void**)&d_edge_data_expanding[i], sizeof(Edge)*SIZE_EDGES));
 		
-		cudaDeviceSynchronize();
+		cudaDeviceSynchronize(); // This can be deleted - double check
 
 		printf("\nRunning kernel (induction step) with block size %d and thread size %d:", get_block_size(), get_thread_size());
 		perform_induction_step_expanding <<<get_block_size(), get_thread_size()>>>(d_sampled_vertices, d_offsets, d_indices, d_edge_data_expanding[i], d_size_edges[i]);
 		
 		// Edge size
 		int h_size_edges_result;
-		cudaMemcpy(&h_size_edges_result, d_size_edges[i], sizeof(int), cudaMemcpyDeviceToHost);
+		gpuErrchk(cudaMemcpy(&h_size_edges_result, d_size_edges[i], sizeof(int), cudaMemcpyDeviceToHost));
 
 		// Edges
 		printf("\nh_size_edges: %d", h_size_edges_result);
 		Sampled_Graph_Version* sampled_graph_version = new Sampled_Graph_Version();
 		(*sampled_graph_version).edges.resize(h_size_edges_result);
 
-		cudaMemcpy(&sampled_graph_version->edges[0], d_edge_data_expanding[i], sizeof(Edge)*(h_size_edges_result), cudaMemcpyDeviceToHost);
+		gpuErrchk(cudaMemcpy(&sampled_graph_version->edges[0], d_edge_data_expanding[i], sizeof(Edge)*(h_size_edges_result), cudaMemcpyDeviceToHost));
 
 		// Label
 		sampled_graph_version->label = current_label++;
@@ -524,6 +557,8 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 		cudaFree(d_sampled_vertices);
 		cudaFree(d_offsets);
 		cudaFree(d_indices);
+		cudaFree(d_edge_data_expanding[i]);
+		cudaFree(d_size_edges);
 		free(sampled_vertices_per_graph[i]->vertices);
 		free(sampled_vertices_per_graph[i]);
 	}
@@ -543,8 +578,6 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 
 	// Cleanup
 	delete[] sampled_graph_version_list;
-	cudaFree(d_edge_data_expanding); // Perhaps these cuda allocations can be freed in the for loop..
-	cudaFree(d_size_edges);
 }
 
 void link_using_star_topology(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges) {
@@ -655,8 +688,27 @@ void print_csr(int* h_offsets, int* h_indices) {
 }
 
 void check(nvgraphStatus_t status) {
-	if (status != NVGRAPH_STATUS_SUCCESS) {
-		printf("ERROR : %d\n", status);
+	if (status == NVGRAPH_STATUS_NOT_INITIALIZED) {
+		printf("\nError converting to CSR: %d - NVGRAPH_STATUS_NOT_INITIALIZED", status);
+		exit(0);
+	}
+	else if (status== NVGRAPH_STATUS_ALLOC_FAILED) {
+		printf("\nError converting to CSR: %d - NVGRAPH_STATUS_ALLOC_FAILED", status);
+		exit(0);
+	}
+	else if (status == NVGRAPH_STATUS_INVALID_VALUE) {
+		printf("\nError converting to CSR: %d - NVGRAPH_STATUS_INVALID_VALUE", status);
+		exit(0);
+	}
+	else if (status == NVGRAPH_STATUS_INTERNAL_ERROR) {
+		printf("\nError converting to CSR: %d - NVGRAPH_STATUS_INTERNAL_ERROR", status);
+		exit(0);
+	}
+	else if(status == NVGRAPH_STATUS_SUCCESS) {
+		printf("\nConverted to CSR successfully (statuscode %d).\n", status);
+	}
+	else {
+		printf("\nSome other error occurred while trying to convert to CSR.");
 		exit(0);
 	}
 }
