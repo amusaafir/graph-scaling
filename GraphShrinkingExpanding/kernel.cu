@@ -51,8 +51,8 @@ ANALYSIS
 //#define SIZE_EDGES 68993773
 
 // Web-stanford
-#define SIZE_VERTICES 281903
-#define SIZE_EDGES 2312497
+//#define SIZE_VERTICES 281903
+//#define SIZE_EDGES 2312497
 
 // Pokec relationships
 #define SIZE_VERTICES 1632803
