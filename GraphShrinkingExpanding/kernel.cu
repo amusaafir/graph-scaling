@@ -51,12 +51,12 @@ ANALYSIS
 //#define SIZE_EDGES 68993773
 
 // Web-stanford
-//#define SIZE_VERTICES 281903
-//#define SIZE_EDGES 2312497
+#define SIZE_VERTICES 281903
+#define SIZE_EDGES 2312497
 
 // Pokec relationships
-#define SIZE_VERTICES 1632803
-#define SIZE_EDGES 30622564 
+//#define SIZE_VERTICES 1632803
+//#define SIZE_EDGES 30622564 
 
 // Edge list example
 //#define SIZE_VERTICES 6
@@ -105,6 +105,7 @@ void sample_graph(char*, char*, float);
 CSR_List* convert_coo_to_csr_format(int*, int*);
 void expand_graph(char*, char*, float);
 void link_using_star_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
+void link_using_line_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
 void add_edge_interconnection_between_graphs(int, Sampled_Graph_Version*, Sampled_Graph_Version*, std::vector<Bridge_Edge>&);
 int select_random_bridge_vertex(Sampled_Graph_Version*);
 void write_expanded_output_to_file(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&, char*);
@@ -205,13 +206,13 @@ TODO: Allocate the memory on the GPU only when you need it, after collecting the
 int main() {
 	//char* input_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
+	char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\roadNet-PA.txt";
-	char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
+	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
 
@@ -580,7 +581,8 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 
 	// For each sampled graph version, copy the data back to the host
 	std::vector<Bridge_Edge> bridge_edges;
-	link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
+	//link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
+	link_using_line_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
 
 	write_expanded_output_to_file(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges, output_path);
 
@@ -599,11 +601,22 @@ void link_using_star_topology(Sampled_Graph_Version* sampled_graph_version_list,
 	Sampled_Graph_Version center_graph = sampled_graph_version_list[0];
 
 	int amount_of_edge_interconnections = 1;
+	
 	for (int i = 1; i < amount_of_sampled_graphs; i++) { // Skip the center graph 
 		add_edge_interconnection_between_graphs(amount_of_edge_interconnections, &(sampled_graph_version_list[i]), &center_graph, bridge_edges);
 	}
 
-	printf("\nCollected a total of %d bridge edges.", bridge_edges.size());
+	printf("\nStar topology - Connected by adding a total of %d bridge edges.", bridge_edges.size());
+}
+
+void link_using_line_topology(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges) {
+	int amount_of_edge_interconnections = 1;
+
+	for (int i = 0; i < (amount_of_sampled_graphs-1); i++) {
+		add_edge_interconnection_between_graphs(amount_of_edge_interconnections, &(sampled_graph_version_list[i]), &(sampled_graph_version_list[i+1]), bridge_edges);
+	}
+
+	printf("\nLine topology - Connected by adding a total of %d bridge edges.", bridge_edges.size());
 }
 
 /*
