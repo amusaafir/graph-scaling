@@ -106,6 +106,7 @@ CSR_List* convert_coo_to_csr_format(int*, int*);
 void expand_graph(char*, char*, float);
 void link_using_star_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
 void link_using_line_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
+void link_using_circle_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
 void add_edge_interconnection_between_graphs(int, Sampled_Graph_Version*, Sampled_Graph_Version*, std::vector<Bridge_Edge>&);
 int select_random_bridge_vertex(Sampled_Graph_Version*);
 void write_expanded_output_to_file(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&, char*);
@@ -582,7 +583,8 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	// For each sampled graph version, copy the data back to the host
 	std::vector<Bridge_Edge> bridge_edges;
 	//link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
-	link_using_line_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
+	//link_using_line_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
+	link_using_circle_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
 
 	write_expanded_output_to_file(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges, output_path);
 
@@ -617,6 +619,21 @@ void link_using_line_topology(Sampled_Graph_Version* sampled_graph_version_list,
 	}
 
 	printf("\nLine topology - Connected by adding a total of %d bridge edges.", bridge_edges.size());
+}
+
+void link_using_circle_topology(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges) {
+	int amount_of_edge_interconnections = 1;
+
+	for (int i = 0; i < amount_of_sampled_graphs; i++) {
+		
+		if (i == (amount_of_sampled_graphs-1)) { // We're at the last sampled graph, so connect it back to the first one in the list
+			add_edge_interconnection_between_graphs(amount_of_edge_interconnections, &(sampled_graph_version_list[i]), &(sampled_graph_version_list[0]), bridge_edges);
+			
+			break;
+		}
+
+		add_edge_interconnection_between_graphs(amount_of_edge_interconnections, &(sampled_graph_version_list[i]), &(sampled_graph_version_list[i+1]), bridge_edges);
+	}
 }
 
 /*
