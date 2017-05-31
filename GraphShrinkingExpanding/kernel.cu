@@ -208,7 +208,7 @@ int main() {
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
 	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
 
-	char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\expanded_stanford_large_again_3_times_05.txt";
+	char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_stanford_stream.txt";
 
 	//sample_graph(input_path, output_path, 0.5);
 
@@ -507,15 +507,17 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	Sampled_Graph_Version* sampled_graph_version_list = new Sampled_Graph_Version[amount_of_sampled_graphs];
 	char current_label = 'a';
 
+	int* d_offsets;
+	int* d_indices;
+	gpuErrchk(cudaMalloc((void**)&d_offsets, sizeof(int)*(SIZE_VERTICES + 1)));
+	gpuErrchk(cudaMalloc((void**)&d_indices, sizeof(int)*SIZE_EDGES));
+
 	for (int i = 0; i < amount_of_sampled_graphs; i++) {
 		sampled_vertices_per_graph[i] = perform_edge_based_node_sampling_step(coo_list->source, coo_list->destination, DEFAULT_EXPANDING_SAMPLE_SIZE);
 		printf("\nCollected %d vertices.", sampled_vertices_per_graph[i]->sampled_vertices_size);
 		printf("\nDone with node sampling step..");
 		// Induction step (TODO: re-use device memory from CSR conversion)
-		int* d_offsets;
-		int* d_indices;
-		gpuErrchk(cudaMalloc((void**)&d_offsets, sizeof(int)*(SIZE_VERTICES + 1)));
-		gpuErrchk(cudaMalloc((void**)&d_indices, sizeof(int)*SIZE_EDGES));
+		
 		gpuErrchk(cudaMemcpy(d_indices, h_indices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice));
 		gpuErrchk(cudaMemcpy(d_offsets, h_offsets, sizeof(int)*(SIZE_VERTICES + 1), cudaMemcpyHostToDevice));
 
@@ -555,19 +557,19 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 		delete(sampled_graph_version);
 		
 		cudaFree(d_sampled_vertices);
-		cudaFree(d_offsets);
-		cudaFree(d_indices);
 		cudaFree(d_edge_data_expanding[i]);
 		cudaFree(d_size_edges);
 		free(sampled_vertices_per_graph[i]->vertices);
 		free(sampled_vertices_per_graph[i]);
 	}
 
+	cudaFree(d_offsets);
+	cudaFree(d_indices);
 	free(sampled_vertices_per_graph);
 	free(coo_list);
 	free(h_indices);
 	free(h_offsets);
-	
+
 	printf("\nAfter test: %d", sampled_graph_version_list[0].edges.size());
 
 	// For each sampled graph version, copy the data back to the host
