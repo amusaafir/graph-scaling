@@ -30,7 +30,6 @@ ANALYSIS
 #include "device_launch_parameters.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "kernel.h"
 #include <string.h>
 #include <nvgraph.h>
 #include "device_functions.h"
@@ -51,12 +50,12 @@ ANALYSIS
 //#define SIZE_EDGES 68993773
 
 // Web-stanford
-#define SIZE_VERTICES 281903
-#define SIZE_EDGES 2312497
+//#define SIZE_VERTICES 281903
+//#define SIZE_EDGES 2312497
 
 // Pokec relationships
-//#define SIZE_VERTICES 1632803
-//#define SIZE_EDGES 30622564 
+#define SIZE_VERTICES 1632803
+#define SIZE_EDGES 30622564 
 
 // Edge list example
 //#define SIZE_VERTICES 6
@@ -204,24 +203,34 @@ void perform_induction_step_expanding(int* sampled_vertices, int* offsets, int* 
 /*
 TODO: Allocate the memory on the GPU only when you need it, after collecting the edge-based node step.
 */
-int main() {
-	//char* input_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
-	char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\roadNet-PA.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
-	//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
+int main(int argc, char* argv[]) {
+	if (argc == 3) {
+		char* input_path = argv[1];
+		char* output_path = argv[2];
 
-	char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_stanford_stream.txt";
+		sample_graph(input_path, output_path, 0.5);
+		//expand_graph(input_path, output_path, 3);
+	} else {
+		printf("Incorrect amount of input/output arguments given.");
 
-	//sample_graph(input_path, output_path, 0.5);
+		// ONLY FOR LOCAL TESTING
+		//char* input_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\roadNet-PA.txt";
+		char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
+		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_expand_pokec.txt";
 
-	expand_graph(input_path, output_path, 3);
+		//sample_graph(input_path, output_path, 0.5);
+		expand_graph(input_path, output_path, 3);
+	}
 
 	return 0;
 }
@@ -315,7 +324,6 @@ CSR_List* convert_coo_to_csr_format(int* source_vertices, int* target_vertices) 
 	gpuErrchk(cudaMalloc((void**)&d_edge_data, sizeof(float) * SIZE_EDGES)); // Note: only allocate this for 1 float since we don't have any data yet
 	gpuErrchk(cudaMalloc((void**)&d_destination_edge_data, sizeof(float) * SIZE_EDGES)); // Note: only allocate this for 1 float since we don't have any data yet
 
-																						 // Convert COO to a CSR format
 	nvgraphCSRTopology32I_t csrTopology = (nvgraphCSRTopology32I_t)malloc(sizeof(struct nvgraphCSRTopology32I_st));
 	int **d_indices = &(csrTopology->destination_indices);
 	int **d_offsets = &(csrTopology->source_offsets);
