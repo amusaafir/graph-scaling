@@ -54,16 +54,16 @@ ANALYSIS
 //#define SIZE_EDGES 2312497
 
 // Pokec relationships
-#define SIZE_VERTICES 1632803
-#define SIZE_EDGES 30622564 
+//#define SIZE_VERTICES 1632803
+//#define SIZE_EDGES 30622564 
 
 // Edge list example
 //#define SIZE_VERTICES 6
 //#define SIZE_EDGES 5
 
 // Com graph
-//#define SIZE_VERTICES 3072441
-//#define SIZE_EDGES 117185083
+#define SIZE_VERTICES 3072441
+#define SIZE_EDGES 117185083
 
 // Facebook graph
 //#define SIZE_VERTICES 4039
@@ -72,6 +72,8 @@ ANALYSIS
 #define MAX_THREADS 1024
 #define DEFAULT_EXPANDING_SAMPLE_SIZE 0.5
 #define ENABLE_DEBUG_LOG false
+
+bool IS_INPUT_FILE_COO = false;
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = false)
@@ -110,6 +112,7 @@ void add_edge_interconnection_between_graphs(int, Sampled_Graph_Version*, Sample
 int select_random_bridge_vertex(Sampled_Graph_Version*);
 void write_expanded_output_to_file(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&, char*);
 void write_output_to_file(std::vector<Edge>&, char* output_path);
+void save_input_file_as_coo(std::vector<int>&, std::vector<int>&, char*);
 void check(nvgraphStatus_t);
 
 typedef struct COO_List {
@@ -222,14 +225,15 @@ int main(int argc, char* argv[]) {
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\roadNet-PA.txt";
-		char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
-		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_expand_pokec.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\coo\\pokec_coo.txt";
+		//char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\sampled_fb_debug_05.txt";
 
 		//sample_graph(input_path, output_path, 0.5);
-		expand_graph(input_path, output_path, 3);
+		//expand_graph(input_path, output_path, 3);
 	}
 
 	return 0;
@@ -241,7 +245,7 @@ void sample_graph(char* input_path, char* output_path, float fraction) {
 
 	// Convert edge list to COO
 	COO_List* coo_list = load_graph_from_edge_list_file_to_coo(source_vertices, destination_vertices, input_path);
-
+	
 	// Convert the COO graph into a CSR format (for the in-memory GPU representation) 
 	CSR_List* csr_list = convert_coo_to_csr_format(coo_list->source, coo_list->destination);
 
@@ -410,22 +414,42 @@ COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertice
 	char line[256];
 
 	int current_coordinate = 0;
+	if (IS_INPUT_FILE_COO) { // Saves many 'if' ticks inside the while loop - If the input file is already a COO, simply add the coordinates the vectors.
+		while (fgets(line, sizeof(line), file)) {
+			if (line[0] == '#') {
+				//print_debug_log("\nEscaped a comment.");
+				continue;
+			}
 
-	while (fgets(line, sizeof(line), file)) {
-		if (line[0] == '#') {
-			//print_debug_log("\nEscaped a comment.");
-			continue;
+			// Save source and target vertex (temp)
+			int source_vertex;
+			int target_vertex;
+
+			sscanf(line, "%d%d\t", &source_vertex, &target_vertex);
+
+			// Add vertices to the source and target arrays, forming an edge accordingly
+			source_vertices.push_back(source_vertex);
+			destination_vertices.push_back(target_vertex);
+			//map_from_edge_to_coordinate[source_vertex] = 0;
+			//map_from_edge_to_coordinate[target_vertex] = 0;
 		}
+	} else {
+		while (fgets(line, sizeof(line), file)) {
+			if (line[0] == '#') {
+				//print_debug_log("\nEscaped a comment.");
+				continue;
+			}
 
-		// Save source and target vertex (temp)
-		int source_vertex;
-		int target_vertex;
+			// Save source and target vertex (temp)
+			int source_vertex;
+			int target_vertex;
 
-		sscanf(line, "%d%d\t", &source_vertex, &target_vertex);
+			sscanf(line, "%d%d\t", &source_vertex, &target_vertex);
 
-		// Add vertices to the source and target arrays, forming an edge accordingly
-		current_coordinate = add_vertex_as_coordinate(source_vertices, map_from_edge_to_coordinate, source_vertex, current_coordinate);
-		current_coordinate = add_vertex_as_coordinate(destination_vertices, map_from_edge_to_coordinate, target_vertex, current_coordinate);
+			// Add vertices to the source and target arrays, forming an edge accordingly
+			current_coordinate = add_vertex_as_coordinate(source_vertices, map_from_edge_to_coordinate, source_vertex, current_coordinate);
+			current_coordinate = add_vertex_as_coordinate(destination_vertices, map_from_edge_to_coordinate, target_vertex, current_coordinate);
+		}
 	}
 
 	COO_List* coo_list = (COO_List*)malloc(sizeof(COO_List));
@@ -437,6 +461,16 @@ COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertice
 
 	printf("\nTotal amount of vertices: %zd", map_from_edge_to_coordinate.size());
 	printf("\nTotal amount of edges: %zd", source_vertices.size());
+
+	if (source_vertices.size() != destination_vertices.size()) {
+		printf("\nThe size of the source vertices does not equal the destination vertices.");
+		exit(1);
+	}
+
+	bool SAVE_INPUT_FILE_AS_COO = false;
+	if (SAVE_INPUT_FILE_AS_COO) {
+		save_input_file_as_coo(source_vertices, destination_vertices, "C:\\Users\\AJ\\Desktop\\new_datasets\\coo\\none.txt");
+	}
 
 	// Print edges
 	/*for (int i = 0; i < source_vertices.size(); i++) {
@@ -701,10 +735,10 @@ void write_expanded_output_to_file(Sampled_Graph_Version* sampled_graph_version_
 	fclose(output_file);
 }
 
-void write_output_to_file(std::vector<Edge>& results, char* ouput_path) {
+void write_output_to_file(std::vector<Edge>& results, char* output_path) {
 	printf("\nWriting results to output file.");
 	
-	char* file_path = ouput_path;
+	char* file_path = output_path;
 	FILE *output_file = fopen(file_path, "w");
 
 	if (output_file == NULL) {
@@ -714,6 +748,25 @@ void write_output_to_file(std::vector<Edge>& results, char* ouput_path) {
 
 	for (int i = 0; i < results.size(); i++) {
 		fprintf(output_file, "%d\t%d\n", results[i].source, results[i].destination);
+	}
+
+	fclose(output_file);
+}
+
+
+void save_input_file_as_coo(std::vector<int>& source_vertices, std::vector<int>& destination_vertices, char* save_path) {
+	printf("\nWriting results to output file.");
+
+	char* file_path = save_path;
+	FILE *output_file = fopen(file_path, "w");
+
+	if (output_file == NULL) {
+		printf("\nError writing results to output file.");
+		exit(1);
+	}
+
+	for (int i = 0; i < source_vertices.size(); i++) {
+		fprintf(output_file, "%d\t%d\n", source_vertices[i], destination_vertices[i]);
 	}
 
 	fclose(output_file);
