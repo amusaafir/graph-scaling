@@ -10,11 +10,12 @@ SHRINKING:
 - Load graph should be a separate method
 
 EXPANDING:
-- Force undirected (edge interconnection)
-- Decrease size of char in Bridge_Edge
-- Investigate stream expanding
+- Option for undirected (edge interconnection)
 - High degree nodes
+- Expanding fraction (e.g. 3.5) - what about the 0.5
+- Investigate stream expanding
 - Make it somewhat nice so that the user can change these properties easily.
+- Decrease size of char in Bridge_Edge
 
 ANALYSIS
 - Check snap tool
