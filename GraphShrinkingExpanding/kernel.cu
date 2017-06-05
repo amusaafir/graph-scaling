@@ -7,20 +7,14 @@ SHRINKING:
 - Look into edge based vs CSR based device.
 - Refactor code (multiple files)
 - Ignore spaces while reading file!
-- Performance improvement loading a graph
-- Count vertices/edges automatically (Can be done later, use globals, need to allocate memory on gpu though in runtime)
 - Load graph should be a separate method
 
 EXPANDING:
 - Force undirected (edge interconnection)
 - Decrease size of char in Bridge_Edge
-- stream expanding <- dont spend much time on this though
-- Linear, line topology
-- High degree nodes (wait til thursday)
+- Investigate stream expanding
+- High degree nodes
 - Make it somewhat nice so that the user can change these properties easily.
-
-DAS5
-- Test run on DAS5
 
 ANALYSIS
 - Check snap tool
@@ -45,38 +39,16 @@ ANALYSIS
 #include <unordered_map>
 #include <map>
 
-// Live journal
-//#define SIZE_VERTICES 4847571
-//#define SIZE_EDGES 68993773
-
-// Web-stanford
-//#define SIZE_VERTICES 281903
-//#define SIZE_EDGES 2312497
-
-// Pokec relationships
-//#define SIZE_VERTICES 1632803
-//#define SIZE_EDGES 30622564 
-
-// Edge list example
-//#define SIZE_VERTICES 6
-//#define SIZE_EDGES 5
-
-// Com graph
-#define SIZE_VERTICES 3072441
-#define SIZE_EDGES 117185083
-
-// Facebook graph
-//#define SIZE_VERTICES 4039
-//#define SIZE_EDGES 88234
-
 #define MAX_THREADS 1024
 #define DEFAULT_EXPANDING_SAMPLE_SIZE 0.5
 #define ENABLE_DEBUG_LOG false
 
+int SIZE_VERTICES;
+int SIZE_EDGES;
 bool IS_INPUT_FILE_COO = false;
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = false)
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
 {
 	if (code != cudaSuccess)
 	{
@@ -144,23 +116,23 @@ typedef struct Bridge_Edge {
 	char destination[20];
 } Bridge_Edge;
 
-__device__ Edge edge_data[SIZE_EDGES];
 __device__ int d_edge_count = 0;
+__constant__ int D_SIZE_EDGES;
 
-__device__ int push_edge(Edge &edge) {
+__device__ int push_edge(Edge &edge, Edge* d_edge_data) {
 	int edge_index = atomicAdd(&d_edge_count, 1);
-	if (edge_index < SIZE_EDGES) {
-		edge_data[edge_index] = edge;
+	if (edge_index < D_SIZE_EDGES) {
+		d_edge_data[edge_index] = edge;
 		return edge_index;
 	}
 	else {
-		printf("Maximum edge size threshold reached.");
+		printf("Maximum edge size threshold reached: %d", D_SIZE_EDGES);
 		return -1;
 	}
 }
 
 __global__
-void perform_induction_step(int* sampled_vertices, int* offsets, int* indices) {
+void perform_induction_step(int* sampled_vertices, int* offsets, int* indices, Edge* d_edge_data) {
 	int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
 	int neighbor_index_end_offset = neighbor_index_start_offset + 1;
 
@@ -170,14 +142,14 @@ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices) {
 			Edge edge;
 			edge.source = neighbor_index_start_offset;
 			edge.destination = indices[n];
-			push_edge(edge);
+			push_edge(edge, d_edge_data);
 		}
 	}
 }
 
 __device__ int push_edge_expanding(Edge &edge, Edge* edge_data_expanding, int* d_edge_count_expanding) {
 	int edge_index = atomicAdd(d_edge_count_expanding, 1);
-	if (edge_index < SIZE_EDGES) {
+	if (edge_index < D_SIZE_EDGES) {
 		edge_data_expanding[edge_index] = edge;
 		return edge_index;
 	}
@@ -228,12 +200,12 @@ int main(int argc, char* argv[]) {
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
-		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
+		char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\coo\\pokec_coo.txt";
-		//char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\sampled_fb_debug_05.txt";
+		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\expanded_stanford_auto.txt";
 
 		//sample_graph(input_path, output_path, 0.5);
-		//expand_graph(input_path, output_path, 3);
+		expand_graph(input_path, output_path, 3);
 	}
 
 	return 0;
@@ -256,8 +228,8 @@ void sample_graph(char* input_path, char* output_path, float fraction) {
 	// Induction step (TODO: re-use device memory from CSR conversion)
 	int* d_offsets;
 	int* d_indices;
-	cudaMalloc((void**)&d_offsets, sizeof(int)*(SIZE_VERTICES + 1));
-	cudaMalloc((void**)&d_indices, sizeof(int)*SIZE_EDGES);
+	gpuErrchk(cudaMalloc((void**)&d_offsets, sizeof(int)*(SIZE_VERTICES + 1)));
+	gpuErrchk(cudaMalloc((void**)&d_indices, sizeof(int)*SIZE_EDGES));
 	gpuErrchk(cudaMemcpy(d_indices, csr_list->indices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice));
 	gpuErrchk(cudaMemcpy(d_offsets, csr_list->offsets, sizeof(int)*(SIZE_VERTICES + 1), cudaMemcpyHostToDevice));
 
@@ -265,18 +237,23 @@ void sample_graph(char* input_path, char* output_path, float fraction) {
 	gpuErrchk(cudaMalloc((void**)&d_sampled_vertices, sizeof(int)*SIZE_VERTICES));
 	gpuErrchk(cudaMemcpy(d_sampled_vertices, sampled_vertices->vertices, sizeof(int)*(SIZE_VERTICES), cudaMemcpyHostToDevice));
 
+	gpuErrchk(cudaMemcpyToSymbol(D_SIZE_EDGES, &SIZE_EDGES, sizeof(int), 0, cudaMemcpyHostToDevice));
+
+	Edge* d_edge_data;
+	gpuErrchk(cudaMalloc((void**)&d_edge_data, sizeof(Edge)*SIZE_EDGES));
+
 	printf("\nRunning kernel (induction step) with block size %d and thread size %d:", get_block_size(), get_thread_size());
-	perform_induction_step <<<get_block_size(), get_thread_size() >> >(d_sampled_vertices, d_offsets, d_indices);
+	perform_induction_step <<<get_block_size(), get_thread_size() >> >(d_sampled_vertices, d_offsets, d_indices, d_edge_data);
 
 	int h_edge_count;
-	cudaMemcpyFromSymbol(&h_edge_count, d_edge_count, sizeof(int));
+	gpuErrchk(cudaMemcpyFromSymbol(&h_edge_count, d_edge_count, sizeof(int)));
 	if (h_edge_count >= SIZE_EDGES + 1) {
 		printf("overflow error\n"); return;
 	}
 
 	printf("\nAmount of edges collected: %d", h_edge_count);
 	std::vector<Edge> results(h_edge_count);
-	cudaMemcpyFromSymbol(&(results[0]), edge_data, h_edge_count * sizeof(Edge));
+	gpuErrchk(cudaMemcpy(&(results[0]), d_edge_data, h_edge_count * sizeof(Edge), cudaMemcpyDeviceToHost));
 
 	write_output_to_file(results, output_path);
 
@@ -407,14 +384,14 @@ void load_graph_from_edge_list_file(int* source_vertices, int* target_vertices, 
 COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertices, std::vector<int>& destination_vertices, char* file_path) {
 	printf("\nLoading graph file from: %s", file_path);
 
-	std::unordered_map<int, int> map_from_edge_to_coordinate;
-
 	FILE* file = fopen(file_path, "r");
 
 	char line[256];
 
 	int current_coordinate = 0;
 	if (IS_INPUT_FILE_COO) { // Saves many 'if' ticks inside the while loop - If the input file is already a COO, simply add the coordinates the vectors.
+		std::unordered_set<int> vertices;
+		
 		while (fgets(line, sizeof(line), file)) {
 			if (line[0] == '#') {
 				//print_debug_log("\nEscaped a comment.");
@@ -430,10 +407,18 @@ COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertice
 			// Add vertices to the source and target arrays, forming an edge accordingly
 			source_vertices.push_back(source_vertex);
 			destination_vertices.push_back(target_vertex);
-			//map_from_edge_to_coordinate[source_vertex] = 0;
-			//map_from_edge_to_coordinate[target_vertex] = 0;
+			vertices.insert(source_vertex);
+			vertices.insert(target_vertex);
 		}
+
+		SIZE_VERTICES = vertices.size();
+		SIZE_EDGES = source_vertices.size();
+
+		printf("\nTotal amount of vertices: %zd", SIZE_VERTICES);
+		printf("\nTotal amount of edges: %zd", SIZE_EDGES);
 	} else {
+		std::unordered_map<int, int> map_from_edge_to_coordinate;
+
 		while (fgets(line, sizeof(line), file)) {
 			if (line[0] == '#') {
 				//print_debug_log("\nEscaped a comment.");
@@ -450,6 +435,12 @@ COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertice
 			current_coordinate = add_vertex_as_coordinate(source_vertices, map_from_edge_to_coordinate, source_vertex, current_coordinate);
 			current_coordinate = add_vertex_as_coordinate(destination_vertices, map_from_edge_to_coordinate, target_vertex, current_coordinate);
 		}
+
+		SIZE_VERTICES = map_from_edge_to_coordinate.size();
+		SIZE_EDGES = source_vertices.size();
+
+		printf("\nTotal amount of vertices: %zd", SIZE_VERTICES);
+		printf("\nTotal amount of edges: %zd", SIZE_EDGES);
 	}
 
 	COO_List* coo_list = (COO_List*)malloc(sizeof(COO_List));
@@ -458,9 +449,6 @@ COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertice
 	destination_vertices.reserve(destination_vertices.size());
 	coo_list->source = &source_vertices[0];
 	coo_list->destination = &destination_vertices[0];
-
-	printf("\nTotal amount of vertices: %zd", map_from_edge_to_coordinate.size());
-	printf("\nTotal amount of edges: %zd", source_vertices.size());
 
 	if (source_vertices.size() != destination_vertices.size()) {
 		printf("\nThe size of the source vertices does not equal the destination vertices.");
@@ -552,7 +540,7 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 
 	Sampled_Vertices** sampled_vertices_per_graph = (Sampled_Vertices**)malloc(sizeof(Sampled_Vertices)*amount_of_sampled_graphs);
 
-	int** d_size_edges = (int**)malloc(sizeof(int*)*amount_of_sampled_graphs);
+	int** d_size_collected_edges = (int**)malloc(sizeof(int*)*amount_of_sampled_graphs);
 	Edge** d_edge_data_expanding = (Edge**)malloc(sizeof(Edge*)*amount_of_sampled_graphs);
 
 	Sampled_Graph_Version* sampled_graph_version_list = new Sampled_Graph_Version[amount_of_sampled_graphs];
@@ -562,6 +550,8 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	int* d_indices;
 	gpuErrchk(cudaMalloc((void**)&d_offsets, sizeof(int)*(SIZE_VERTICES + 1)));
 	gpuErrchk(cudaMalloc((void**)&d_indices, sizeof(int)*SIZE_EDGES));
+
+	gpuErrchk(cudaMemcpyToSymbol(D_SIZE_EDGES, &SIZE_EDGES, sizeof(int), 0, cudaMemcpyHostToDevice));
 
 	for (int i = 0; i < amount_of_sampled_graphs; i++) {
 		sampled_vertices_per_graph[i] = perform_edge_based_node_sampling_step(coo_list->source, coo_list->destination, DEFAULT_EXPANDING_SAMPLE_SIZE);
@@ -575,19 +565,19 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 		gpuErrchk(cudaMemcpy(d_sampled_vertices, sampled_vertices_per_graph[i]->vertices, sizeof(int)*(SIZE_VERTICES), cudaMemcpyHostToDevice));
 
 		int* h_size_edges = 0;
-		gpuErrchk(cudaMalloc((void**)&d_size_edges[i], sizeof(int)));
-		gpuErrchk(cudaMemcpy(d_size_edges[i], &h_size_edges, sizeof(int), cudaMemcpyHostToDevice));
+		gpuErrchk(cudaMalloc((void**)&d_size_collected_edges[i], sizeof(int)));
+		gpuErrchk(cudaMemcpy(d_size_collected_edges[i], &h_size_edges, sizeof(int), cudaMemcpyHostToDevice));
 
 		gpuErrchk(cudaMalloc((void**)&d_edge_data_expanding[i], sizeof(Edge)*SIZE_EDGES));
 
 		cudaDeviceSynchronize(); // This can be deleted - double check
 
 		printf("\nRunning kernel (induction step) with block size %d and thread size %d:", get_block_size(), get_thread_size());
-		perform_induction_step_expanding << <get_block_size(), get_thread_size() >> >(d_sampled_vertices, d_offsets, d_indices, d_edge_data_expanding[i], d_size_edges[i]);
+		perform_induction_step_expanding<<<get_block_size(), get_thread_size() >> >(d_sampled_vertices, d_offsets, d_indices, d_edge_data_expanding[i], d_size_collected_edges[i]);
 
 		// Edge size
 		int h_size_edges_result;
-		gpuErrchk(cudaMemcpy(&h_size_edges_result, d_size_edges[i], sizeof(int), cudaMemcpyDeviceToHost));
+		gpuErrchk(cudaMemcpy(&h_size_edges_result, d_size_collected_edges[i], sizeof(int), cudaMemcpyDeviceToHost));
 
 		// Edges
 		printf("\nh_size_edges: %d", h_size_edges_result);
@@ -607,7 +597,7 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 
 		cudaFree(d_sampled_vertices);
 		cudaFree(d_edge_data_expanding[i]);
-		cudaFree(d_size_edges);
+		cudaFree(d_size_collected_edges);
 		free(sampled_vertices_per_graph[i]->vertices);
 		free(sampled_vertices_per_graph[i]);
 	}
