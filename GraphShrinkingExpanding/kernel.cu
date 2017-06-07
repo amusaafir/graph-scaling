@@ -84,7 +84,6 @@ void link_using_circle_topology(Sampled_Graph_Version*, int, std::vector<Bridge_
 void add_edge_interconnection_between_graphs(int, Sampled_Graph_Version*, Sampled_Graph_Version*, std::vector<Bridge_Edge>&);
 int select_random_bridge_vertex(Sampled_Graph_Version*);
 int select_high_degree_node_bridge_vertex(Sampled_Graph_Version*);
-void add_node_to_node_degree_map(std::unordered_map<int, int>&, int);
 int get_random_high_degree_node(Sampled_Graph_Version*);
 void write_expanded_output_to_file(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&, char*);
 void write_output_to_file(std::vector<Edge>&, char* output_path);
@@ -197,7 +196,7 @@ int main(int argc, char* argv[]) {
 		//char* input_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
-		//char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
+		char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
@@ -205,7 +204,6 @@ int main(int argc, char* argv[]) {
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
-		char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\coo\\pokec_coo.txt";
 		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_high_degree.txt";
 
@@ -617,9 +615,9 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 
 	// For each sampled graph version, copy the data back to the host
 	std::vector<Bridge_Edge> bridge_edges;
-	//link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
+	link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
 	//link_using_line_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
-	link_using_circle_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
+	//link_using_circle_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
 
 	write_expanded_output_to_file(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges, output_path);
 
@@ -657,7 +655,7 @@ void link_using_line_topology(Sampled_Graph_Version* sampled_graph_version_list,
 }
 
 void link_using_circle_topology(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges) {
-	int amount_of_edge_interconnections = 5;
+	int amount_of_edge_interconnections = 1;
 
 	for (int i = 0; i < amount_of_sampled_graphs; i++) {
 		
@@ -676,21 +674,19 @@ void link_using_circle_topology(Sampled_Graph_Version* sampled_graph_version_lis
 -> if(amount_of_edge_interconnections<1) = fraction of the edges/nodes?
 */
 void add_edge_interconnection_between_graphs(int amount_of_edge_interconnections, Sampled_Graph_Version* graph_a, Sampled_Graph_Version* graph_b, std::vector<Bridge_Edge>& bridge_edges) {
-	printf("\n============================");
 	for (int i = 0; i < amount_of_edge_interconnections; i++) {
 		//int vertex_a = select_random_bridge_vertex(graph_a);
 		//int vertex_b = select_random_bridge_vertex(graph_b);
 		int vertex_a = select_high_degree_node_bridge_vertex(graph_a);
 		int vertex_b = select_high_degree_node_bridge_vertex(graph_b);
 
-		// TODO: Extract function
 		// Add edge
 		Bridge_Edge bridge_edge;
 		sprintf(bridge_edge.source, "%c%d", graph_a->label, vertex_a);
 		sprintf(bridge_edge.destination, "%c%d", graph_b->label, vertex_b);
 
 		bridge_edges.push_back(bridge_edge);
-		printf("\nBridge selection - Selected: (%s, %s)", bridge_edge.source, bridge_edge.destination);
+		//printf("\nBridge selection - Selected: (%s, %s)", bridge_edge.source, bridge_edge.destination);
 	}
 }
 
@@ -713,22 +709,18 @@ int select_high_degree_node_bridge_vertex(Sampled_Graph_Version* graph) {
 		std::unordered_map<int, int> node_degree;
 		
 		for (auto &edge : graph->edges) {
-			add_node_to_node_degree_map(node_degree, edge.source);
-			add_node_to_node_degree_map(node_degree, edge.destination);
+			++node_degree[edge.source];
+			++node_degree[edge.destination];
 		}
 
 		// Convert the map to a vector
-		std::vector<std::pair<int, int>> node_degree_vect;
-
-		for (auto it = node_degree.cbegin(); it != node_degree.cend(); ++it)
-		{
-			node_degree_vect.push_back(std::make_pair(it->first, it->second));
-		}
+		std::vector<std::pair<int, int>> node_degree_vect(node_degree.begin(), node_degree.end());
 
 		// Sort the vector (ascending, high degree nodes are on top)
 		std::sort(node_degree_vect.begin(), node_degree_vect.end(), [](const std::pair<int, int> &left, const std::pair<int, int> &right) {
 			return left.second > right.second;
 		});
+
 		// Collect only the nodes (half of the total nodes) that have a high degree
 		for (int i = 0; i < node_degree_vect.size() / 2; i++) {
 			graph->high_degree_nodes.push_back(node_degree_vect[i].first);
@@ -746,15 +738,6 @@ int get_random_high_degree_node(Sampled_Graph_Version* graph) {
 	int random_vertex_index = range_edges(engine);
 
 	return graph->high_degree_nodes[random_vertex_index];
-}
-
-void add_node_to_node_degree_map(std::unordered_map<int, int>& node_degree, int node) {
-	if (!node_degree.count(node)) {
-		node_degree[node] = 1;
-	}
-	else {
-		node_degree[node] = node_degree[node] + 1;
-	}
 }
 
 void write_expanded_output_to_file(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges, char* ouput_path) {
