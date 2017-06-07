@@ -6,7 +6,6 @@ TODO:
 SHRINKING:
 - Look into edge based vs CSR based device.
 - Refactor code (multiple files)
-- Ignore spaces while reading file!
 - Load graph should be a separate method
 
 EXPANDING:
@@ -39,6 +38,7 @@ ANALYSIS
 #include <unordered_set>
 #include <unordered_map>
 #include <map>
+#include <algorithm>
 
 #define MAX_THREADS 1024
 #define DEFAULT_EXPANDING_SAMPLE_SIZE 0.5
@@ -83,6 +83,9 @@ void link_using_line_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Ed
 void link_using_circle_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
 void add_edge_interconnection_between_graphs(int, Sampled_Graph_Version*, Sampled_Graph_Version*, std::vector<Bridge_Edge>&);
 int select_random_bridge_vertex(Sampled_Graph_Version*);
+int select_high_degree_node_bridge_vertex(Sampled_Graph_Version*);
+void add_node_to_node_degree_map(std::unordered_map<int, int>&, int);
+int get_random_high_degree_node(Sampled_Graph_Version*);
 void write_expanded_output_to_file(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&, char*);
 void write_output_to_file(std::vector<Edge>&, char* output_path);
 void save_input_file_as_coo(std::vector<int>&, std::vector<int>&, char*);
@@ -109,6 +112,7 @@ typedef struct Edge {
 
 typedef struct Sampled_Graph_Version {
 	std::vector<Edge> edges;
+	std::vector<int> high_degree_nodes;
 	char label;
 } Sampled_Graph_Version;
 
@@ -203,7 +207,7 @@ int main(int argc, char* argv[]) {
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
 		char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\coo\\pokec_coo.txt";
-		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\expanded_stanford_auto.txt";
+		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_high_degree.txt";
 
 		//sample_graph(input_path, output_path, 0.5);
 		expand_graph(input_path, output_path, 3);
@@ -394,7 +398,7 @@ COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertice
 		std::unordered_set<int> vertices;
 		
 		while (fgets(line, sizeof(line), file)) {
-			if (line[0] == '#') {
+			if (line[0] == '#' || line[0] == '\n') {
 				//print_debug_log("\nEscaped a comment.");
 				continue;
 			}
@@ -421,7 +425,7 @@ COO_List* load_graph_from_edge_list_file_to_coo(std::vector<int>& source_vertice
 		std::unordered_map<int, int> map_from_edge_to_coordinate;
 
 		while (fgets(line, sizeof(line), file)) {
-			if (line[0] == '#') {
+			if (line[0] == '#' || line[0] == '\n') {
 				//print_debug_log("\nEscaped a comment.");
 				continue;
 			}
@@ -611,8 +615,6 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	free(csr_list->offsets);
 	free(csr_list);
 
-	printf("\nAfter test: %d", sampled_graph_version_list[0].edges.size());
-
 	// For each sampled graph version, copy the data back to the host
 	std::vector<Bridge_Edge> bridge_edges;
 	//link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
@@ -655,7 +657,7 @@ void link_using_line_topology(Sampled_Graph_Version* sampled_graph_version_list,
 }
 
 void link_using_circle_topology(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges) {
-	int amount_of_edge_interconnections = 1;
+	int amount_of_edge_interconnections = 5;
 
 	for (int i = 0; i < amount_of_sampled_graphs; i++) {
 		
@@ -676,8 +678,10 @@ void link_using_circle_topology(Sampled_Graph_Version* sampled_graph_version_lis
 void add_edge_interconnection_between_graphs(int amount_of_edge_interconnections, Sampled_Graph_Version* graph_a, Sampled_Graph_Version* graph_b, std::vector<Bridge_Edge>& bridge_edges) {
 	printf("\n============================");
 	for (int i = 0; i < amount_of_edge_interconnections; i++) {
-		int vertex_a = select_random_bridge_vertex(graph_a);
-		int vertex_b = select_random_bridge_vertex(graph_b);
+		//int vertex_a = select_random_bridge_vertex(graph_a);
+		//int vertex_b = select_random_bridge_vertex(graph_b);
+		int vertex_a = select_high_degree_node_bridge_vertex(graph_a);
+		int vertex_b = select_high_degree_node_bridge_vertex(graph_b);
 
 		// TODO: Extract function
 		// Add edge
@@ -699,6 +703,58 @@ int select_random_bridge_vertex(Sampled_Graph_Version* graph) {
 	int random_edge_index = range_edges(engine);
 
 	return (*graph).edges[random_edge_index].destination; // Select destination vertex (perhaps make this 50:50?)
+}
+
+int select_high_degree_node_bridge_vertex(Sampled_Graph_Version* graph) {
+	if (graph->high_degree_nodes.size() > 0) { // There already exists some high degree nodes here, so just select them randomly for instance.
+		return get_random_high_degree_node(graph);
+	} else { // Collect high degree nodes and add them to the current graph
+		// Map all vertices onto a map along with their degree
+		std::unordered_map<int, int> node_degree;
+		
+		for (auto &edge : graph->edges) {
+			add_node_to_node_degree_map(node_degree, edge.source);
+			add_node_to_node_degree_map(node_degree, edge.destination);
+		}
+
+		// Convert the map to a vector
+		std::vector<std::pair<int, int>> node_degree_vect;
+
+		for (auto it = node_degree.cbegin(); it != node_degree.cend(); ++it)
+		{
+			node_degree_vect.push_back(std::make_pair(it->first, it->second));
+		}
+
+		// Sort the vector (ascending, high degree nodes are on top)
+		std::sort(node_degree_vect.begin(), node_degree_vect.end(), [](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+			return left.second > right.second;
+		});
+		// Collect only the nodes (half of the total nodes) that have a high degree
+		for (int i = 0; i < node_degree_vect.size() / 2; i++) {
+			graph->high_degree_nodes.push_back(node_degree_vect[i].first);
+		}
+
+		return get_random_high_degree_node(graph);
+	}
+}
+
+int get_random_high_degree_node(Sampled_Graph_Version* graph) {
+	std::random_device seeder;
+	std::mt19937 engine(seeder());
+
+	std::uniform_int_distribution<int> range_edges(0, (graph->high_degree_nodes.size() - 1));
+	int random_vertex_index = range_edges(engine);
+
+	return graph->high_degree_nodes[random_vertex_index];
+}
+
+void add_node_to_node_degree_map(std::unordered_map<int, int>& node_degree, int node) {
+	if (!node_degree.count(node)) {
+		node_degree[node] = 1;
+	}
+	else {
+		node_degree[node] = node_degree[node] + 1;
+	}
 }
 
 void write_expanded_output_to_file(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges, char* ouput_path) {
