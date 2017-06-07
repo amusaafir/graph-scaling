@@ -5,12 +5,10 @@ TODO:
 
 SHRINKING:
 - Look into edge based vs CSR based device.
-- Refactor code (multiple files)
 - Load graph should be a separate method
 
 EXPANDING:
 - Option for undirected (edge interconnection)
-- High degree nodes
 - Expanding fraction (e.g. 3.5) - what about the 0.5
 - Investigate stream expanding
 - Make it somewhat nice so that the user can change these properties easily.
@@ -18,6 +16,10 @@ EXPANDING:
 
 ANALYSIS
 - Check snap tool
+
+OVERALL
+- Refactor code (multiple files, remove code duplicates)
+- Get rid of using mixed C/C++
 */
 
 #include "cuda_runtime.h"
@@ -48,15 +50,15 @@ int SIZE_VERTICES;
 int SIZE_EDGES;
 bool IS_INPUT_FILE_COO = false;
 
-#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
-{
-	if (code != cudaSuccess)
-	{
-		fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
-		if (abort) exit(code);
-	}
-}
+typedef enum Bridge_Node_Selection {HIGH_DEGREE_NODES, RANDOM_NODES} Bridge_Node_Selection;
+typedef enum Topology {STAR, CHAIN, CIRCLE};
+bool FORCE_UNDIRECTED = false;
+float SAMPLING_FRACTION;
+float EXPANDING_FACTOR;
+int AMOUNT_INTERCONNECTIONS;
+
+Bridge_Node_Selection SELECTED_BRIDGE_NODE_SELECTION;
+Topology selected_topology;
 
 typedef struct Sampled_Vertices sampled_vertices;
 typedef struct COO_List coo_list;
@@ -85,10 +87,22 @@ void add_edge_interconnection_between_graphs(int, Sampled_Graph_Version*, Sample
 int select_random_bridge_vertex(Sampled_Graph_Version*);
 int select_high_degree_node_bridge_vertex(Sampled_Graph_Version*);
 int get_random_high_degree_node(Sampled_Graph_Version*);
+void collect_sampling_parameters(char* argv[]);
+void collect_expanding_parameters(char* argv[]);
 void write_expanded_output_to_file(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&, char*);
 void write_output_to_file(std::vector<Edge>&, char* output_path);
 void save_input_file_as_coo(std::vector<int>&, std::vector<int>&, char*);
 void check(nvgraphStatus_t);
+
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
+{
+	if (code != cudaSuccess)
+	{
+		fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+		if (abort) exit(code);
+	}
+}
 
 typedef struct COO_List {
 	int* source;
@@ -179,16 +193,19 @@ void perform_induction_step_expanding(int* sampled_vertices, int* offsets, int* 
 	}
 }
 
-/*
-TODO: Allocate the memory on the GPU only when you need it, after collecting the edge-based node step.
-*/
 int main(int argc, char* argv[]) {
-	if (argc == 3) {
+	if (argc >= 4) {
 		char* input_path = argv[1];
 		char* output_path = argv[2];
 
-		sample_graph(input_path, output_path, 0.5);
-		//expand_graph(input_path, output_path, 3);
+		if (strcmp(argv[3], "sample") == 0) {
+			collect_sampling_parameters(argv);
+			sample_graph(input_path, output_path, 0.5);
+		}
+		else {
+			collect_expanding_parameters(argv);
+			expand_graph(input_path, output_path, 3);
+		}
 	} else {
 		printf("Incorrect amount of input/output arguments given.");
 
@@ -196,22 +213,73 @@ int main(int argc, char* argv[]) {
 		//char* input_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
-		char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
-		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
+		char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\roadNet-PA.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\coo\\pokec_coo.txt";
-		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_high_degree.txt";
+		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_expand_fb.txt";
 
 		//sample_graph(input_path, output_path, 0.5);
 		expand_graph(input_path, output_path, 3);
 	}
 
 	return 0;
+}
+
+void collect_sampling_parameters(char* argv[]) {
+	float fraction = atof(argv[4]);
+	SAMPLING_FRACTION = fraction;
+	printf("\nSample fraction: %f", fraction);
+}
+
+void collect_expanding_parameters(char* argv[]) {
+	// Factor
+	EXPANDING_FACTOR = atof(argv[4]);
+	printf("\nFactor: %f", EXPANDING_FACTOR);
+
+	// Fraction
+	SAMPLING_FRACTION = atof(argv[5]);
+	printf("\nFraction per sample: %f", SAMPLING_FRACTION); // TODO: Residu
+
+	// Topology
+	char* topology = argv[6];
+	if(strcmp(topology, "star") == 0) {
+		selected_topology = STAR;
+		printf("\nTopology: %s", "star");
+	} else if(strcmp(topology, "chain") == 0) {
+		selected_topology = CHAIN;
+		printf("\nTopology: %s", "chain");
+	} else if (strcmp(topology, "circle")) {
+		selected_topology = CIRCLE;
+		printf("\nTopology: %s", "circle");
+	} else {
+		printf("\nGiven topology type is undefined.");
+		exit(1);
+	}
+
+	// Bridge
+	char* bridge = argv[7];
+	if (strcmp(bridge, "high_degree") == 0) {
+		SELECTED_BRIDGE_NODE_SELECTION = HIGH_DEGREE_NODES;
+		printf("\nBridge: %s", "high degree");
+	} else if (strcmp(bridge, "random") == 0) {
+		SELECTED_BRIDGE_NODE_SELECTION = RANDOM_NODES;
+		printf("\nBridge: %s", "random");
+	} else {
+		printf("\nGiven bridge type is undefined.");
+		exit(1);
+	}
+
+	//  Interconnection
+	sscanf(argv[8], "%d", &AMOUNT_INTERCONNECTIONS);
+	printf("\nAmount of interconnection: %d", AMOUNT_INTERCONNECTIONS);
+
+	// TODO: Undirected (should be optional)
 }
 
 void sample_graph(char* input_path, char* output_path, float fraction) {
