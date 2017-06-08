@@ -43,7 +43,6 @@ OVERALL
 #include <algorithm>
 
 #define MAX_THREADS 1024
-#define DEFAULT_EXPANDING_SAMPLE_SIZE 0.5
 #define ENABLE_DEBUG_LOG false
 
 int SIZE_VERTICES;
@@ -52,13 +51,13 @@ bool IS_INPUT_FILE_COO = false;
 
 typedef enum Bridge_Node_Selection {HIGH_DEGREE_NODES, RANDOM_NODES} Bridge_Node_Selection;
 typedef enum Topology {STAR, CHAIN, CIRCLE};
-bool FORCE_UNDIRECTED = false;
+bool FORCE_UNDIRECTED_BRIDGES = false;
 float SAMPLING_FRACTION;
 float EXPANDING_FACTOR;
 int AMOUNT_INTERCONNECTIONS;
 
 Bridge_Node_Selection SELECTED_BRIDGE_NODE_SELECTION;
-Topology selected_topology;
+Topology SELECTED_TOPOLOGY;
 
 typedef struct Sampled_Vertices sampled_vertices;
 typedef struct COO_List coo_list;
@@ -83,7 +82,7 @@ void expand_graph(char*, char*, float);
 void link_using_star_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
 void link_using_line_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
 void link_using_circle_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
-void add_edge_interconnection_between_graphs(int, Sampled_Graph_Version*, Sampled_Graph_Version*, std::vector<Bridge_Edge>&);
+void add_edge_interconnection_between_graphs(Sampled_Graph_Version*, Sampled_Graph_Version*, std::vector<Bridge_Edge>&);
 int select_random_bridge_vertex(Sampled_Graph_Version*);
 int select_high_degree_node_bridge_vertex(Sampled_Graph_Version*);
 int get_random_high_degree_node(Sampled_Graph_Version*);
@@ -92,6 +91,7 @@ void collect_expanding_parameters(char* argv[]);
 void write_expanded_output_to_file(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&, char*);
 void write_output_to_file(std::vector<Edge>&, char* output_path);
 void save_input_file_as_coo(std::vector<int>&, std::vector<int>&, char*);
+int get_node_bridge_vertex(Sampled_Graph_Version*);
 void check(nvgraphStatus_t);
 
 #define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
@@ -200,11 +200,11 @@ int main(int argc, char* argv[]) {
 
 		if (strcmp(argv[3], "sample") == 0) {
 			collect_sampling_parameters(argv);
-			sample_graph(input_path, output_path, 0.5);
+			sample_graph(input_path, output_path, SAMPLING_FRACTION);
 		}
 		else {
 			collect_expanding_parameters(argv);
-			expand_graph(input_path, output_path, 3);
+			expand_graph(input_path, output_path, EXPANDING_FACTOR);
 		}
 	} else {
 		printf("Incorrect amount of input/output arguments given.");
@@ -215,17 +215,17 @@ int main(int argc, char* argv[]) {
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
-		char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\roadNet-PA.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\coo\\pokec_coo.txt";
-		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_expand_fb.txt";
+		//char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_sample_param.txt";
 
 		//sample_graph(input_path, output_path, 0.5);
-		expand_graph(input_path, output_path, 3);
+		//expand_graph(input_path, output_path, 3);
 	}
 
 	return 0;
@@ -249,13 +249,13 @@ void collect_expanding_parameters(char* argv[]) {
 	// Topology
 	char* topology = argv[6];
 	if(strcmp(topology, "star") == 0) {
-		selected_topology = STAR;
+		SELECTED_TOPOLOGY = STAR;
 		printf("\nTopology: %s", "star");
 	} else if(strcmp(topology, "chain") == 0) {
-		selected_topology = CHAIN;
+		SELECTED_TOPOLOGY = CHAIN;
 		printf("\nTopology: %s", "chain");
 	} else if (strcmp(topology, "circle")) {
-		selected_topology = CIRCLE;
+		SELECTED_TOPOLOGY = CIRCLE;
 		printf("\nTopology: %s", "circle");
 	} else {
 		printf("\nGiven topology type is undefined.");
@@ -279,7 +279,12 @@ void collect_expanding_parameters(char* argv[]) {
 	sscanf(argv[8], "%d", &AMOUNT_INTERCONNECTIONS);
 	printf("\nAmount of interconnection: %d", AMOUNT_INTERCONNECTIONS);
 
-	// TODO: Undirected (should be optional)
+	// Force undirected (TODO: Should be optional)
+	char* force_undirected = argv[9];
+	if (strcmp(force_undirected, "undirected") == 0) {
+		FORCE_UNDIRECTED_BRIDGES = true;
+		printf("\nUndirected bridges added.");
+	}
 }
 
 void sample_graph(char* input_path, char* output_path, float fraction) {
@@ -606,7 +611,7 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	COO_List* coo_list = load_graph_from_edge_list_file_to_coo(source_vertices, destination_vertices, input_path);
 	CSR_List* csr_list = convert_coo_to_csr_format(coo_list->source, coo_list->destination);
 
-	const int amount_of_sampled_graphs = scaling_factor / DEFAULT_EXPANDING_SAMPLE_SIZE;
+	const int amount_of_sampled_graphs = scaling_factor / SAMPLING_FRACTION;
 	printf("Amount of sampled graph versions: %d", amount_of_sampled_graphs);
 
 	Sampled_Vertices** sampled_vertices_per_graph = (Sampled_Vertices**)malloc(sizeof(Sampled_Vertices)*amount_of_sampled_graphs);
@@ -625,7 +630,7 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	gpuErrchk(cudaMemcpyToSymbol(D_SIZE_EDGES, &SIZE_EDGES, sizeof(int), 0, cudaMemcpyHostToDevice));
 
 	for (int i = 0; i < amount_of_sampled_graphs; i++) {
-		sampled_vertices_per_graph[i] = perform_edge_based_node_sampling_step(coo_list->source, coo_list->destination, DEFAULT_EXPANDING_SAMPLE_SIZE);
+		sampled_vertices_per_graph[i] = perform_edge_based_node_sampling_step(coo_list->source, coo_list->destination, SAMPLING_FRACTION);
 		printf("\nCollected %d vertices.", sampled_vertices_per_graph[i]->sampled_vertices_size);
 
 		gpuErrchk(cudaMemcpy(d_indices, csr_list->indices, SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice));
@@ -683,9 +688,20 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 
 	// For each sampled graph version, copy the data back to the host
 	std::vector<Bridge_Edge> bridge_edges;
-	link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
-	//link_using_line_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
-	//link_using_circle_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
+
+	switch (SELECTED_TOPOLOGY) {
+		case STAR:
+			link_using_star_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
+			break;
+		case CHAIN:
+			link_using_line_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
+			break;
+		case CIRCLE:
+			link_using_circle_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
+			break;
+	}
+
+	printf("\nConnected by adding a total of %d bridge edges.", bridge_edges.size());
 
 	write_expanded_output_to_file(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges, output_path);
 
@@ -694,46 +710,28 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 }
 
 void link_using_star_topology(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges) {
-	/*printf("\nAfter size now 0: %d with label: %c", sampled_graph_version_list[0].edges.size(), sampled_graph_version_list[0].label);
-	printf("\nIs there an actual edge here: (%d, %d)", sampled_graph_version_list[0].edges[0].source, sampled_graph_version_list[0].edges[0].destination);
-	printf("\nAfter size now 1: %d with label: %c", sampled_graph_version_list[1].edges.size(), sampled_graph_version_list[1].label);
-	printf("\nAfter size now 2: %d with label: %c", sampled_graph_version_list[2].edges.size(), sampled_graph_version_list[2].label);
-	printf("\nAfter size now 3: %d with label: %c", sampled_graph_version_list[3].edges.size(), sampled_graph_version_list[3].label);*/
+	Sampled_Graph_Version center_graph = sampled_graph_version_list[0]; // First sampled version will be the graph in the center
 
-	// First sampled version will be the graph in the center
-	Sampled_Graph_Version center_graph = sampled_graph_version_list[0];
-
-	int amount_of_edge_interconnections = 1;
-	
 	for (int i = 1; i < amount_of_sampled_graphs; i++) { // Skip the center graph 
-		add_edge_interconnection_between_graphs(amount_of_edge_interconnections, &(sampled_graph_version_list[i]), &center_graph, bridge_edges);
+		add_edge_interconnection_between_graphs(&(sampled_graph_version_list[i]), &center_graph, bridge_edges);
 	}
 
-	printf("\nStar topology - Connected by adding a total of %d bridge edges.", bridge_edges.size());
 }
 
 void link_using_line_topology(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges) {
-	int amount_of_edge_interconnections = 1;
-
 	for (int i = 0; i < (amount_of_sampled_graphs-1); i++) {
-		add_edge_interconnection_between_graphs(amount_of_edge_interconnections, &(sampled_graph_version_list[i]), &(sampled_graph_version_list[i+1]), bridge_edges);
+		add_edge_interconnection_between_graphs(&(sampled_graph_version_list[i]), &(sampled_graph_version_list[i+1]), bridge_edges);
 	}
-
-	printf("\nLine topology - Connected by adding a total of %d bridge edges.", bridge_edges.size());
 }
 
 void link_using_circle_topology(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges) {
-	int amount_of_edge_interconnections = 1;
-
 	for (int i = 0; i < amount_of_sampled_graphs; i++) {
-		
 		if (i == (amount_of_sampled_graphs-1)) { // We're at the last sampled graph, so connect it back to the first one in the list
-			add_edge_interconnection_between_graphs(amount_of_edge_interconnections, &(sampled_graph_version_list[i]), &(sampled_graph_version_list[0]), bridge_edges);
-			
+			add_edge_interconnection_between_graphs(&(sampled_graph_version_list[i]), &(sampled_graph_version_list[0]), bridge_edges);
 			break;
 		}
 
-		add_edge_interconnection_between_graphs(amount_of_edge_interconnections, &(sampled_graph_version_list[i]), &(sampled_graph_version_list[i+1]), bridge_edges);
+		add_edge_interconnection_between_graphs(&(sampled_graph_version_list[i]), &(sampled_graph_version_list[i+1]), bridge_edges);
 	}
 }
 
@@ -741,20 +739,25 @@ void link_using_circle_topology(Sampled_Graph_Version* sampled_graph_version_lis
 -> Probably parallelizable.
 -> if(amount_of_edge_interconnections<1) = fraction of the edges/nodes?
 */
-void add_edge_interconnection_between_graphs(int amount_of_edge_interconnections, Sampled_Graph_Version* graph_a, Sampled_Graph_Version* graph_b, std::vector<Bridge_Edge>& bridge_edges) {
-	for (int i = 0; i < amount_of_edge_interconnections; i++) {
-		//int vertex_a = select_random_bridge_vertex(graph_a);
-		//int vertex_b = select_random_bridge_vertex(graph_b);
-		int vertex_a = select_high_degree_node_bridge_vertex(graph_a);
-		int vertex_b = select_high_degree_node_bridge_vertex(graph_b);
+void add_edge_interconnection_between_graphs(Sampled_Graph_Version* graph_a, Sampled_Graph_Version* graph_b, std::vector<Bridge_Edge>& bridge_edges) {
+	for (int i = 0; i < AMOUNT_INTERCONNECTIONS; i++) {
+		int vertex_a = get_node_bridge_vertex(graph_a);
+		int vertex_b = get_node_bridge_vertex(graph_b);
 
 		// Add edge
 		Bridge_Edge bridge_edge;
 		sprintf(bridge_edge.source, "%c%d", graph_a->label, vertex_a);
 		sprintf(bridge_edge.destination, "%c%d", graph_b->label, vertex_b);
-
 		bridge_edges.push_back(bridge_edge);
 		//printf("\nBridge selection - Selected: (%s, %s)", bridge_edge.source, bridge_edge.destination);
+
+		if (FORCE_UNDIRECTED_BRIDGES) {
+			Bridge_Edge bridge_edge_undirected;
+			sprintf(bridge_edge_undirected.source, "%c%d", graph_b->label, vertex_b);
+			sprintf(bridge_edge_undirected.destination, "%c%d", graph_a->label, vertex_a);
+			bridge_edges.push_back(bridge_edge_undirected);
+			//printf("\nBridge selection (undirected) - Selected: (%s, %s)", bridge_edge_undirected.source, bridge_edge_undirected.destination);
+		}
 	}
 }
 
@@ -806,6 +809,15 @@ int get_random_high_degree_node(Sampled_Graph_Version* graph) {
 	int random_vertex_index = range_edges(engine);
 
 	return graph->high_degree_nodes[random_vertex_index];
+}
+
+int get_node_bridge_vertex(Sampled_Graph_Version* graph) {
+	switch (SELECTED_BRIDGE_NODE_SELECTION) {
+		case RANDOM_NODES:
+			return select_random_bridge_vertex(graph);
+		case HIGH_DEGREE_NODES:
+			return select_high_degree_node_bridge_vertex(graph);
+	}
 }
 
 void write_expanded_output_to_file(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges, char* ouput_path) {
