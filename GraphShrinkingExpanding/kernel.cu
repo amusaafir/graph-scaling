@@ -248,13 +248,13 @@ void collect_expanding_parameters(char* argv[]) {
 
 	// Topology
 	char* topology = argv[6];
-	if(strcmp(topology, "star") == 0) {
+	if (strcmp(topology, "star") == 0) {
 		SELECTED_TOPOLOGY = STAR;
 		printf("\nTopology: %s", "star");
-	} else if(strcmp(topology, "chain") == 0) {
+	} else if (strcmp(topology, "chain") == 0) {
 		SELECTED_TOPOLOGY = CHAIN;
 		printf("\nTopology: %s", "chain");
-	} else if (strcmp(topology, "circle")) {
+	} else if (strcmp(topology, "circle") == 0) {
 		SELECTED_TOPOLOGY = CIRCLE;
 		printf("\nTopology: %s", "circle");
 	} else {
