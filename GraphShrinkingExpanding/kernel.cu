@@ -50,7 +50,7 @@ int SIZE_EDGES;
 bool IS_INPUT_FILE_COO = false;
 
 typedef enum Bridge_Node_Selection {HIGH_DEGREE_NODES, RANDOM_NODES} Bridge_Node_Selection;
-typedef enum Topology {STAR, CHAIN, CIRCLE};
+typedef enum Topology {STAR, CHAIN, CIRCLE, MESH};
 bool FORCE_UNDIRECTED_BRIDGES = false;
 float SAMPLING_FRACTION;
 float EXPANDING_FACTOR;
@@ -82,6 +82,7 @@ void expand_graph(char*, char*, float);
 void link_using_star_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
 void link_using_line_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
 void link_using_circle_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
+void link_using_mesh_topology(Sampled_Graph_Version*, int, std::vector<Bridge_Edge>&);
 void add_edge_interconnection_between_graphs(Sampled_Graph_Version*, Sampled_Graph_Version*, std::vector<Bridge_Edge>&);
 int select_random_bridge_vertex(Sampled_Graph_Version*);
 int select_high_degree_node_bridge_vertex(Sampled_Graph_Version*);
@@ -165,6 +166,27 @@ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices, E
 	}
 }
 
+void perform_sequential_induction_step(int* sampled_vertices, int* offsets, int* indices, std::vector<Edge>& edges) {
+	for (int p = 0; p < SIZE_VERTICES; p++) {
+		//printf("\n\nVertex %d", p);
+		
+		int startOffset = offsets[p];
+		int endOffset = offsets[p + 1];
+		//printf("\nHas neighbor:");
+		for (int i = startOffset; i < endOffset ; i++) {
+			//printf("%d, ", indices[i]);
+			if (sampled_vertices[p] && sampled_vertices[indices[i]]) {
+				//printf("\nAdd edge: (%d, %d)", p, indices[i]);
+				Edge edge;
+				edge.source = p;
+				edge.destination = indices[i];
+				edges.push_back(edge);
+			}
+		}
+
+	}
+}
+
 __device__ int push_edge_expanding(Edge &edge, Edge* edge_data_expanding, int* d_edge_count_expanding) {
 	int edge_index = atomicAdd(d_edge_count_expanding, 1);
 	if (edge_index < D_SIZE_EDGES) {
@@ -222,10 +244,16 @@ int main(int argc, char* argv[]) {
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\coo\\pokec_coo.txt";
-		//char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\debug_sample_param.txt";
+		//char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\mesh_test.txt";
 
 		//sample_graph(input_path, output_path, 0.5);
-		//expand_graph(input_path, output_path, 3);
+		/*
+		EXPANDING_FACTOR = 3;
+		SAMPLING_FRACTION = 0.5;
+		SELECTED_TOPOLOGY = MESH;
+		SELECTED_BRIDGE_NODE_SELECTION = RANDOM_NODES;
+		AMOUNT_INTERCONNECTIONS = 2;
+		expand_graph(input_path, output_path, EXPANDING_FACTOR);*/
 	}
 
 	return 0;
@@ -257,6 +285,9 @@ void collect_expanding_parameters(char* argv[]) {
 	} else if (strcmp(topology, "circle") == 0) {
 		SELECTED_TOPOLOGY = CIRCLE;
 		printf("\nTopology: %s", "circle");
+	} else if (strcmp(topology, "mesh") == 0) {
+		SELECTED_TOPOLOGY = MESH;
+		printf("\nTopology: %s", "mesh");
 	} else {
 		printf("\nGiven topology type is undefined.");
 		exit(1);
@@ -302,7 +333,7 @@ void sample_graph(char* input_path, char* output_path, float fraction) {
 	printf("\nCollected %d vertices.", sampled_vertices->sampled_vertices_size);
 
 	// Induction step (TODO: re-use device memory from CSR conversion)
-	int* d_offsets;
+	/*int* d_offsets;
 	int* d_indices;
 	gpuErrchk(cudaMalloc((void**)&d_offsets, sizeof(int)*(SIZE_VERTICES + 1)));
 	gpuErrchk(cudaMalloc((void**)&d_indices, sizeof(int)*SIZE_EDGES));
@@ -330,13 +361,19 @@ void sample_graph(char* input_path, char* output_path, float fraction) {
 	printf("\nAmount of edges collected: %d", h_edge_count);
 	std::vector<Edge> results(h_edge_count);
 	gpuErrchk(cudaMemcpy(&(results[0]), d_edge_data, h_edge_count * sizeof(Edge), cudaMemcpyDeviceToHost));
+	*/
 
+	//print_csr(csr_list->offsets, csr_list->indices);
+
+	std::vector<Edge> results;
+	perform_sequential_induction_step(sampled_vertices->vertices, csr_list->offsets, csr_list->indices, results);
+	
 	write_output_to_file(results, output_path);
 
-	cudaFree(d_offsets);
+	/*cudaFree(d_offsets);
 	cudaFree(d_indices);
 	cudaFree(d_sampled_vertices);
-
+	*/
 	// Cleanup
 	free(sampled_vertices->vertices);
 	free(sampled_vertices);
@@ -578,16 +615,18 @@ Sampled_Vertices* perform_edge_based_node_sampling_step(int* source_vertices, in
 		// Pick a random vertex u
 		std::uniform_int_distribution<int> range_edges(0, (SIZE_EDGES - 1)); // Don't select the last element in the offset
 		int random_edge_index = range_edges(engine);
-
+		
 		// Insert u, v (TODO: extract to method per vertex)
 		if (!sampled_vertices->vertices[source_vertices[random_edge_index]]) {
 			sampled_vertices->vertices[source_vertices[random_edge_index]] = 1;
 			print_debug_log("\nCollected vertex:", source_vertices[random_edge_index]);
+			//printf("\nCollected vertex: %d", source_vertices[random_edge_index]);
 			collected_amount++;
 		}
 		if (!sampled_vertices->vertices[target_vertices[random_edge_index]]) {
 			sampled_vertices->vertices[target_vertices[random_edge_index]] = 1;
 			print_debug_log("\nCollected vertex:", target_vertices[random_edge_index]);
+			//printf("\nCollected vertex: %d", target_vertices[random_edge_index]);
 			collected_amount++;
 		}
 	}
@@ -622,7 +661,31 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	Sampled_Graph_Version* sampled_graph_version_list = new Sampled_Graph_Version[amount_of_sampled_graphs];
 	char current_label = 'a';
 
-	int* d_offsets;
+	// Sequential version
+	for (int i = 0; i < amount_of_sampled_graphs; i++) {
+		sampled_vertices_per_graph[i] = perform_edge_based_node_sampling_step(coo_list->source, coo_list->destination, SAMPLING_FRACTION);
+		printf("\nCollected %d vertices.", sampled_vertices_per_graph[i]->sampled_vertices_size);
+		
+		std::vector<Edge> edges;
+		perform_sequential_induction_step(sampled_vertices_per_graph[i]->vertices, csr_list->offsets, csr_list->indices, edges);
+
+		Sampled_Graph_Version* sampled_graph_version = new Sampled_Graph_Version();
+		(*sampled_graph_version).edges = edges; // Mweh
+
+		// Label
+		sampled_graph_version->label = current_label++;
+
+		// Copy data to the sampled version list
+		sampled_graph_version_list[i] = (*sampled_graph_version);
+
+		// Cleanup
+		delete(sampled_graph_version);
+		free(sampled_vertices_per_graph[i]->vertices);
+		free(sampled_vertices_per_graph[i]);
+	}
+
+	// Parallell version (GPU CODE) TODO: fix bug in induction step
+	/*int* d_offsets;
 	int* d_indices;
 	gpuErrchk(cudaMalloc((void**)&d_offsets, sizeof(int)*(SIZE_VERTICES + 1)));
 	gpuErrchk(cudaMalloc((void**)&d_indices, sizeof(int)*SIZE_EDGES));
@@ -679,7 +742,7 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	}
 
 	cudaFree(d_offsets);
-	cudaFree(d_indices);
+	cudaFree(d_indices);*/
 	free(sampled_vertices_per_graph);
 	free(coo_list);
 	free(csr_list->indices);
@@ -699,6 +762,8 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 		case CIRCLE:
 			link_using_circle_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
 			break;
+		case MESH:
+			link_using_mesh_topology(sampled_graph_version_list, amount_of_sampled_graphs, bridge_edges);
 	}
 
 	printf("\nConnected by adding a total of %d bridge edges.", bridge_edges.size());
@@ -732,6 +797,20 @@ void link_using_circle_topology(Sampled_Graph_Version* sampled_graph_version_lis
 		}
 
 		add_edge_interconnection_between_graphs(&(sampled_graph_version_list[i]), &(sampled_graph_version_list[i+1]), bridge_edges);
+	}
+}
+
+void link_using_mesh_topology(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges) {
+	for (int x = 0; x < amount_of_sampled_graphs; x++) {
+		Sampled_Graph_Version current_graph = sampled_graph_version_list[x];
+
+		for (int y = 0; y < amount_of_sampled_graphs; y++) {
+			if (x==y) { // Don't link the current graph to itself
+				continue;
+			}
+
+			add_edge_interconnection_between_graphs(&(sampled_graph_version_list[x]), &(sampled_graph_version_list[y]), bridge_edges);
+		}
 	}
 }
 
@@ -769,7 +848,18 @@ int select_random_bridge_vertex(Sampled_Graph_Version* graph) {
 	std::uniform_int_distribution<int> range_edges(0, ((*graph).edges.size()) - 1);
 	int random_edge_index = range_edges(engine);
 
-	return (*graph).edges[random_edge_index].destination; // Select destination vertex (perhaps make this 50:50?)
+	// 50:50 return source or destination
+	std::random_device destination_or_source_seeder;
+	std::mt19937 engine_source_or_destination(destination_or_source_seeder());
+	std::uniform_int_distribution<int> range_destination_source(0, 1);
+	int destination_or_source = range_destination_source(engine_source_or_destination);
+
+	if (destination_or_source == 0) {
+		return (*graph).edges[random_edge_index].source; 
+	}
+	else {
+		return (*graph).edges[random_edge_index].destination; 
+	}
 }
 
 int select_high_degree_node_bridge_vertex(Sampled_Graph_Version* graph) {
