@@ -137,6 +137,7 @@ typedef struct Bridge_Edge {
 
 __device__ int d_edge_count = 0;
 __constant__ int D_SIZE_EDGES;
+__constant__ int D_SIZE_VERTICES;
 
 __device__ int push_edge(Edge &edge, Edge* d_edge_data) {
 	int edge_index = atomicAdd(&d_edge_count, 1);
@@ -153,15 +154,18 @@ __device__ int push_edge(Edge &edge, Edge* d_edge_data) {
 __global__
 void perform_induction_step(int* sampled_vertices, int* offsets, int* indices, Edge* d_edge_data) {
 	int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
-	int neighbor_index_end_offset = neighbor_index_start_offset + 1;
+	
+	if (neighbor_index_start_offset < D_SIZE_VERTICES) {
+		int neighbor_index_end_offset = neighbor_index_start_offset + 1;
 
-	for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
-		if (sampled_vertices[neighbor_index_start_offset] && sampled_vertices[indices[n]]) {
-			//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
-			Edge edge;
-			edge.source = neighbor_index_start_offset;
-			edge.destination = indices[n];
-			push_edge(edge, d_edge_data);
+		for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
+			if (sampled_vertices[neighbor_index_start_offset] && sampled_vertices[indices[n]]) {
+				//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
+				Edge edge;
+				edge.source = neighbor_index_start_offset;
+				edge.destination = indices[n];
+				push_edge(edge, d_edge_data);
+			}
 		}
 	}
 }
@@ -202,15 +206,18 @@ __device__ int push_edge_expanding(Edge &edge, Edge* edge_data_expanding, int* d
 __global__
 void perform_induction_step_expanding(int* sampled_vertices, int* offsets, int* indices, Edge* edge_data_expanding, int* d_edge_count_expanding) {
 	int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
-	int neighbor_index_end_offset = neighbor_index_start_offset + 1;
+	
+	if (neighbor_index_start_offset < D_SIZE_VERTICES) {
+		int neighbor_index_end_offset = neighbor_index_start_offset + 1;
 
-	for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
-		if (sampled_vertices[neighbor_index_start_offset] && sampled_vertices[indices[n]]) {
-			//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
-			Edge edge;
-			edge.source = neighbor_index_start_offset;
-			edge.destination = indices[n];
-			push_edge_expanding(edge, edge_data_expanding, d_edge_count_expanding);
+		for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
+			if (sampled_vertices[neighbor_index_start_offset] && sampled_vertices[indices[n]]) {
+				//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
+				Edge edge;
+				edge.source = neighbor_index_start_offset;
+				edge.destination = indices[n];
+				push_edge_expanding(edge, edge_data_expanding, d_edge_count_expanding);
+			}
 		}
 	}
 }
@@ -244,15 +251,16 @@ int main(int argc, char* argv[]) {
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\coo\\pokec_coo.txt";
-		//char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\mesh_test.txt";
+		//char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\fb_sampled.txt";
 
-		//sample_graph(input_path, output_path, 0.5);
-		/*
+		/*sample_graph(input_path, output_path, 0.5);
+		
 		EXPANDING_FACTOR = 3;
 		SAMPLING_FRACTION = 0.5;
-		SELECTED_TOPOLOGY = MESH;
+		SELECTED_TOPOLOGY = STAR;
 		SELECTED_BRIDGE_NODE_SELECTION = RANDOM_NODES;
-		AMOUNT_INTERCONNECTIONS = 2;
+		AMOUNT_INTERCONNECTIONS = 10;
+		FORCE_UNDIRECTED_BRIDGES = true;
 		expand_graph(input_path, output_path, EXPANDING_FACTOR);*/
 	}
 
@@ -333,7 +341,7 @@ void sample_graph(char* input_path, char* output_path, float fraction) {
 	printf("\nCollected %d vertices.", sampled_vertices->sampled_vertices_size);
 
 	// Induction step (TODO: re-use device memory from CSR conversion)
-	/*int* d_offsets;
+	int* d_offsets;
 	int* d_indices;
 	gpuErrchk(cudaMalloc((void**)&d_offsets, sizeof(int)*(SIZE_VERTICES + 1)));
 	gpuErrchk(cudaMalloc((void**)&d_indices, sizeof(int)*SIZE_EDGES));
@@ -345,6 +353,7 @@ void sample_graph(char* input_path, char* output_path, float fraction) {
 	gpuErrchk(cudaMemcpy(d_sampled_vertices, sampled_vertices->vertices, sizeof(int)*(SIZE_VERTICES), cudaMemcpyHostToDevice));
 
 	gpuErrchk(cudaMemcpyToSymbol(D_SIZE_EDGES, &SIZE_EDGES, sizeof(int), 0, cudaMemcpyHostToDevice));
+	gpuErrchk(cudaMemcpyToSymbol(D_SIZE_VERTICES, &SIZE_VERTICES, sizeof(int), 0, cudaMemcpyHostToDevice));
 
 	Edge* d_edge_data;
 	gpuErrchk(cudaMalloc((void**)&d_edge_data, sizeof(Edge)*SIZE_EDGES));
@@ -361,19 +370,13 @@ void sample_graph(char* input_path, char* output_path, float fraction) {
 	printf("\nAmount of edges collected: %d", h_edge_count);
 	std::vector<Edge> results(h_edge_count);
 	gpuErrchk(cudaMemcpy(&(results[0]), d_edge_data, h_edge_count * sizeof(Edge), cudaMemcpyDeviceToHost));
-	*/
-
-	//print_csr(csr_list->offsets, csr_list->indices);
-
-	std::vector<Edge> results;
-	perform_sequential_induction_step(sampled_vertices->vertices, csr_list->offsets, csr_list->indices, results);
 	
 	write_output_to_file(results, output_path);
 
-	/*cudaFree(d_offsets);
+	cudaFree(d_offsets);
 	cudaFree(d_indices);
 	cudaFree(d_sampled_vertices);
-	*/
+	
 	// Cleanup
 	free(sampled_vertices->vertices);
 	free(sampled_vertices);
@@ -661,7 +664,7 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	Sampled_Graph_Version* sampled_graph_version_list = new Sampled_Graph_Version[amount_of_sampled_graphs];
 	char current_label = 'a';
 
-	// Sequential version
+	/* Sequential version
 	for (int i = 0; i < amount_of_sampled_graphs; i++) {
 		sampled_vertices_per_graph[i] = perform_edge_based_node_sampling_step(coo_list->source, coo_list->destination, SAMPLING_FRACTION);
 		printf("\nCollected %d vertices.", sampled_vertices_per_graph[i]->sampled_vertices_size);
@@ -682,15 +685,16 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 		delete(sampled_graph_version);
 		free(sampled_vertices_per_graph[i]->vertices);
 		free(sampled_vertices_per_graph[i]);
-	}
+	}*/
 
-	// Parallell version (GPU CODE) TODO: fix bug in induction step
-	/*int* d_offsets;
+	// Parallell version (GPU CODE)
+	int* d_offsets;
 	int* d_indices;
 	gpuErrchk(cudaMalloc((void**)&d_offsets, sizeof(int)*(SIZE_VERTICES + 1)));
 	gpuErrchk(cudaMalloc((void**)&d_indices, sizeof(int)*SIZE_EDGES));
 
 	gpuErrchk(cudaMemcpyToSymbol(D_SIZE_EDGES, &SIZE_EDGES, sizeof(int), 0, cudaMemcpyHostToDevice));
+	gpuErrchk(cudaMemcpyToSymbol(D_SIZE_VERTICES, &SIZE_VERTICES, sizeof(int), 0, cudaMemcpyHostToDevice));
 
 	for (int i = 0; i < amount_of_sampled_graphs; i++) {
 		sampled_vertices_per_graph[i] = perform_edge_based_node_sampling_step(coo_list->source, coo_list->destination, SAMPLING_FRACTION);
@@ -742,7 +746,7 @@ void expand_graph(char* input_path, char* output_path, float scaling_factor) {
 	}
 
 	cudaFree(d_offsets);
-	cudaFree(d_indices);*/
+	cudaFree(d_indices);
 	free(sampled_vertices_per_graph);
 	free(coo_list);
 	free(csr_list->indices);
