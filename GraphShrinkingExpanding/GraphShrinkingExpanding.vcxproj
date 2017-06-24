@@ -107,6 +107,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <TargetMachinePlatform>64</TargetMachinePlatform>
       <CodeGeneration>compute_20,sm_20</CodeGeneration>
       <AdditionalOptions>-gencode=arch=compute_50,code=\"sm_50,compute_50\" %(AdditionalOptions)</AdditionalOptions>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -153,9 +154,26 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="kernel.cu">
+    <CudaCompile Include="kernel\kernel.cu">
       <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_20,sm_20</CodeGeneration>
     </CudaCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="io\GraphIO.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="sampling\Sampling.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="sampling\BridgeEdgeStruct.h" />
+    <ClInclude Include="io\COOStruct.h" />
+    <ClInclude Include="io\CSRStruct.h" />
+    <ClInclude Include="kernel\CudaErrCheck.h" />
+    <ClInclude Include="sampling\EdgeStruct.h" />
+    <ClInclude Include="io\GraphIO.h" />
+    <ClInclude Include="kernel\kernel.h" />
+    <ClInclude Include="sampling\SampledGraphVersionStruct.h" />
+    <ClInclude Include="sampling\SampledVerticesStruct.h" />
+    <ClInclude Include="sampling\Sampling.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
