@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "EdgeStruct.h"
+#include "../sampling/EdgeStruct.h"
 
 typedef struct Bridge_Edge {
 	char source[20];

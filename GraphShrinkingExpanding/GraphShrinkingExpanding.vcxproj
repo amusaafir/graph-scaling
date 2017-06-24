@@ -159,19 +159,21 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="expanding\Expanding.cpp" />
     <ClCompile Include="io\GraphIO.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="sampling\Sampling.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sampling\BridgeEdgeStruct.h" />
+    <ClInclude Include="expanding\Expanding.h" />
+    <ClInclude Include="expanding\BridgeEdgeStruct.h" />
     <ClInclude Include="io\COOStruct.h" />
     <ClInclude Include="io\CSRStruct.h" />
     <ClInclude Include="kernel\CudaErrCheck.h" />
     <ClInclude Include="sampling\EdgeStruct.h" />
     <ClInclude Include="io\GraphIO.h" />
     <ClInclude Include="kernel\kernel.h" />
-    <ClInclude Include="sampling\SampledGraphVersionStruct.h" />
+    <ClInclude Include="expanding\SampledGraphVersionStruct.h" />
     <ClInclude Include="sampling\SampledVerticesStruct.h" />
     <ClInclude Include="sampling\Sampling.h" />
   </ItemGroup>

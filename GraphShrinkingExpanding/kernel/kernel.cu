@@ -4,6 +4,14 @@ __device__ int d_edge_count = 0;
 __constant__ int D_SIZE_EDGES;
 __constant__ int D_SIZE_VERTICES;
 
+void perform_induction_step(int block_size, int thread_size, int *d_sampled_vertices, int *d_offsets, int* d_indices, Edge* d_edge_data) {
+	perform_induction_step <<<block_size, thread_size >>>(d_sampled_vertices, d_offsets, d_indices, d_edge_data);
+}
+
+void perform_induction_step_expanding(int block_size, int thread_size, int* d_sampled_vertices, int* d_offsets, int* d_indices, Edge* d_edge_data_expanding, int* d_edge_count_expanding) {
+	perform_induction_step_expanding<<<block_size, thread_size >>>(d_sampled_vertices, d_offsets, d_indices, d_edge_data_expanding, d_edge_count_expanding);
+}
+
 __device__ int push_edge(Edge &edge, Edge* d_edge_data) {
 	int edge_index = atomicAdd(&d_edge_count, 1);
 	if (edge_index < D_SIZE_EDGES) {
@@ -16,8 +24,7 @@ __device__ int push_edge(Edge &edge, Edge* d_edge_data) {
 	}
 }
 
-__global__
-void perform_induction_step(int* sampled_vertices, int* offsets, int* indices, Edge* d_edge_data) {
+__global__ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices, Edge* d_edge_data) {
 	int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
 	
 	if (neighbor_index_start_offset < D_SIZE_VERTICES) {
@@ -35,10 +42,6 @@ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices, E
 	}
 }
 
-void perform_induction_step(int block_size, int thread_size, int *d_sampled_vertices, int *d_offsets, int* d_indices, Edge* d_edge_data) {
-	perform_induction_step<<<block_size, thread_size>>>(d_sampled_vertices, d_offsets, d_indices, d_edge_data);
-}
-
 __device__ int push_edge_expanding(Edge &edge, Edge* edge_data_expanding, int* d_edge_count_expanding) {
 	int edge_index = atomicAdd(d_edge_count_expanding, 1);
 	if (edge_index < D_SIZE_EDGES) {
@@ -51,8 +54,7 @@ __device__ int push_edge_expanding(Edge &edge, Edge* edge_data_expanding, int* d
 	}
 }
 
-__global__
-void perform_induction_step_expanding(int* sampled_vertices, int* offsets, int* indices, Edge* edge_data_expanding, int* d_edge_count_expanding) {
+__global__ void perform_induction_step_expanding(int* sampled_vertices, int* offsets, int* indices, Edge* edge_data_expanding, int* d_edge_count_expanding) {
 	int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
 	
 	if (neighbor_index_start_offset < D_SIZE_VERTICES) {

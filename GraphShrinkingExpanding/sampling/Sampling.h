@@ -10,9 +10,11 @@
 #include "../kernel/kernel.h"
 
 class Sampling {
+private:
+	GraphIO* _graph_io;
 public:
+	Sampling(GraphIO* graph_io);
 	int MAX_THREADS = 1024;
-	GraphIO graph_io;
 	float SAMPLING_FRACTION;
 	void collect_sampling_parameters(char* argv[]);
 	void sample_graph(char* input_path, char* output_path);

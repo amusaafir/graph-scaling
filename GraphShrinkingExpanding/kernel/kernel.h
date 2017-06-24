@@ -15,6 +15,7 @@ extern  __constant__ int D_SIZE_EDGES;
 extern __constant__ int D_SIZE_VERTICES;
 
 extern void perform_induction_step(int block_size, int thread_size, int *d_sampled_vertices, int *d_offsets, int* d_indices, Edge* d_edge_data);
+extern void perform_induction_step_expanding(int block_size, int thread_size, int* d_sampled_vertices, int* d_offsets, int* d_indices, Edge* d_edge_data_expanding, int* d_edge_count_expanding);
 
 __device__ int push_edge(Edge &edge, Edge* d_edge_data);
 __global__ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices, Edge* d_edge_data);

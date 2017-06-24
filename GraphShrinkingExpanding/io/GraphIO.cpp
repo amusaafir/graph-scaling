@@ -188,3 +188,28 @@ void GraphIO::write_output_to_file(std::vector<Edge>& results, char* output_path
 	}
 	fclose(output_file);
 }
+
+void GraphIO::write_expanded_output_to_file(Sampled_Graph_Version* sampled_graph_version_list, int amount_of_sampled_graphs, std::vector<Bridge_Edge>& bridge_edges, char* ouput_path) {
+	printf("\nWriting results to output file.");
+
+	char* file_path = ouput_path;
+	FILE *output_file = fopen(file_path, "w");
+
+	if (output_file == NULL) {
+		printf("\nError writing results to output file.");
+		exit(1);
+	}
+
+	// Write sampled graph versions
+	for (int i = 0; i < amount_of_sampled_graphs; i++) {
+		for (int p = 0; p < sampled_graph_version_list[i].edges.size(); p++) {
+			fprintf(output_file, "\n%c%d\t%c%d", sampled_graph_version_list[i].label, sampled_graph_version_list[i].edges[p].source, sampled_graph_version_list[i].label, sampled_graph_version_list[i].edges[p].destination);
+		}
+	}
+
+	for (int i = 0; i < bridge_edges.size(); i++) {
+		fprintf(output_file, "\n%s\t%s", bridge_edges[i].source, bridge_edges[i].destination);
+	}
+
+	fclose(output_file);
+}
