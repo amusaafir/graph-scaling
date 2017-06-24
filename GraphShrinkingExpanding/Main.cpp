@@ -54,9 +54,9 @@ int main(int argc, char* argv[]) {
 		Expanding* expander = new Expanding(graph_io);
 		expander->SCALING_FACTOR = 3;
 		expander->SAMPLING_FRACTION = 0.5;
-		expander->SELECTED_TOPOLOGY = STAR;
+		expander->set_topology(new Star(10, new RandomBridge(), true));
 		expander->SELECTED_BRIDGE_NODE_SELECTION = RANDOM_NODES;
-		expander->AMOUNT_INTERCONNECTIONS = 10;
+		//expander->AMOUNT_INTERCONNECTIONS = 10;
 		expander->FORCE_UNDIRECTED_BRIDGES = true;
 		expander->expand_graph(input_path, output_path);
 

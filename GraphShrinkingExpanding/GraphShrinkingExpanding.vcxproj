@@ -159,14 +159,29 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </CudaCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="expanding\bridge\HighDegree.cpp" />
+    <ClCompile Include="expanding\bridge\RandomBridge.cpp" />
     <ClCompile Include="expanding\Expanding.cpp" />
+    <ClCompile Include="expanding\topology\Chain.cpp" />
+    <ClCompile Include="expanding\topology\FullyConnected.cpp" />
+    <ClCompile Include="expanding\topology\Ring.cpp" />
+    <ClCompile Include="expanding\topology\Star.cpp" />
+    <ClCompile Include="expanding\topology\Topology.cpp" />
     <ClCompile Include="io\GraphIO.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="sampling\Sampling.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="expanding\bridge\BridgeSelection.h" />
+    <ClInclude Include="expanding\bridge\HighDegree.h" />
+    <ClInclude Include="expanding\bridge\RandomBridge.h" />
     <ClInclude Include="expanding\Expanding.h" />
     <ClInclude Include="expanding\BridgeEdgeStruct.h" />
+    <ClInclude Include="expanding\topology\Chain.h" />
+    <ClInclude Include="expanding\topology\FullyConnected.h" />
+    <ClInclude Include="expanding\topology\Ring.h" />
+    <ClInclude Include="expanding\topology\Star.h" />
+    <ClInclude Include="expanding\topology\Topology.h" />
     <ClInclude Include="io\COOStruct.h" />
     <ClInclude Include="io\CSRStruct.h" />
     <ClInclude Include="kernel\CudaErrCheck.h" />
