@@ -33,10 +33,10 @@ int main(int argc, char* argv[]) {
 
 		//char* input_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
-		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
+		char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
-		char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\roadNet-PA.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";

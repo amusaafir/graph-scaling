@@ -99,14 +99,14 @@ void Expanding::expand_graph(char* input_path, char* output_path) {
 	gpuErrchk(cudaMemcpyToSymbol(&D_SIZE_EDGES, &(_graph_io->SIZE_EDGES), sizeof(int), 0, cudaMemcpyHostToDevice));
 	gpuErrchk(cudaMemcpyToSymbol(&D_SIZE_VERTICES, &(_graph_io->SIZE_VERTICES), sizeof(int), 0, cudaMemcpyHostToDevice));
 
+	gpuErrchk(cudaMemcpy(d_indices, csr_list->indices, _graph_io->SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice));
+	gpuErrchk(cudaMemcpy(d_offsets, csr_list->offsets, sizeof(int) * (_graph_io->SIZE_VERTICES + 1), cudaMemcpyHostToDevice));
+
 	_sampler->SAMPLING_FRACTION = SAMPLING_FRACTION;
 
 	for (int i = 0; i < amount_of_sampled_graphs; i++) {
 		sampled_vertices_per_graph[i] = _sampler->perform_edge_based_node_sampling_step(coo_list->source, coo_list->destination);
 		printf("\nCollected %d vertices.", sampled_vertices_per_graph[i]->sampled_vertices_size);
-
-		gpuErrchk(cudaMemcpy(d_indices, csr_list->indices, _graph_io->SIZE_EDGES * sizeof(int), cudaMemcpyHostToDevice));
-		gpuErrchk(cudaMemcpy(d_offsets, csr_list->offsets, sizeof(int) * (_graph_io->SIZE_VERTICES + 1), cudaMemcpyHostToDevice));
 
 		int* d_sampled_vertices;
 		gpuErrchk(cudaMalloc((void**)&d_sampled_vertices, sizeof(int) * _graph_io->SIZE_VERTICES));
