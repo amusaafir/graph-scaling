@@ -33,17 +33,17 @@ int main(int argc, char* argv[]) {
 
 		//char* input_path = "C:\\Users\\AJ\\Documents\\example_graph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford.txt";
-		char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
+		//char* input_path = "C:\\Users\\AJ\\Desktop\\nvgraphtest\\nvGraphExample-master\\nvGraphExample\\web-Stanford_large.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\edge_list_example.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\roadnet.txt";
-		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
+		char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\facebook_graph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\output_test\\social\\soc-pokec-relationships.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\roadNet-PA.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-pokec-relationships.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\coo\\pokec_coo.txt";
-		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\fb_expanded.txt";
+		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\fb_20_times_expansion.txt";
 
 		GraphIO* graph_io = new GraphIO();
 
@@ -54,9 +54,8 @@ int main(int argc, char* argv[]) {
 		Expanding* expander = new Expanding(graph_io);
 		expander->SCALING_FACTOR = 3;
 		expander->SAMPLING_FRACTION = 0.5;
-		expander->set_topology(new Star(10, new RandomBridge(), true));
+		expander->set_topology(new Star(1, new RandomBridge(), true));
 		expander->SELECTED_BRIDGE_NODE_SELECTION = RANDOM_NODES;
-		//expander->AMOUNT_INTERCONNECTIONS = 10;
 		expander->FORCE_UNDIRECTED_BRIDGES = true;
 		expander->expand_graph(input_path, output_path);
 

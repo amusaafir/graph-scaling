@@ -203,7 +203,7 @@ void GraphIO::write_expanded_output_to_file(Sampled_Graph_Version* sampled_graph
 	// Write sampled graph versions
 	for (int i = 0; i < amount_of_sampled_graphs; i++) {
 		for (int p = 0; p < sampled_graph_version_list[i].edges.size(); p++) {
-			fprintf(output_file, "\n%c%d\t%c%d", sampled_graph_version_list[i].label, sampled_graph_version_list[i].edges[p].source, sampled_graph_version_list[i].label, sampled_graph_version_list[i].edges[p].destination);
+			fprintf(output_file, "\n%c%c%d\t%c%c%d", sampled_graph_version_list[i].label_1, sampled_graph_version_list[i].label_2, sampled_graph_version_list[i].edges[p].source, sampled_graph_version_list[i].label_1, sampled_graph_version_list[i].label_2, sampled_graph_version_list[i].edges[p].destination);
 		}
 	}
 

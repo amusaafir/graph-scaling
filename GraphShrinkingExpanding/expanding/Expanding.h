@@ -42,4 +42,5 @@ public:
 	int get_thread_size();
 	int get_block_size();
 	void set_topology(Topology* topology);
+	void increment_labels(char* label_1, char* label_2);
 };

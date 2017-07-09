@@ -17,12 +17,10 @@ void Expanding::collect_expanding_parameters(char* argv[]) {
 	// Bridge
 	char* bridge = argv[7];
 	if (strcmp(bridge, "high_degree") == 0) {
-		//SELECTED_BRIDGE_NODE_SELECTION = HIGH_DEGREE_NODES;
 		_bridge_selection = new HighDegree();
 		printf("\nBridge: %s", "high degree");
 	}
 	else if (strcmp(bridge, "random") == 0) {
-		//SELECTED_BRIDGE_NODE_SELECTION = RANDOM_NODES;
 		_bridge_selection = new RandomBridge();
 		printf("\nBridge: %s", "random");
 	}
@@ -48,22 +46,18 @@ void Expanding::collect_expanding_parameters(char* argv[]) {
 	printf("\nTopology: ");
 
 	if (strcmp(topology, "star") == 0) {
-		//SELECTED_TOPOLOGY = STAR;
 		_topology = new Star(AMOUNT_INTERCONNECTIONS, _bridge_selection, FORCE_UNDIRECTED_BRIDGES);
 		printf("%s", "star");
 	}
 	else if (strcmp(topology, "chain") == 0) {
-		//SELECTED_TOPOLOGY = CHAIN;
 		_topology = new Chain(AMOUNT_INTERCONNECTIONS, _bridge_selection, FORCE_UNDIRECTED_BRIDGES);
 		printf("%s", "chain");
 	}
 	else if (strcmp(topology, "circle") == 0) {
-		//SELECTED_TOPOLOGY = CIRCLE;
 		_topology = new Ring(AMOUNT_INTERCONNECTIONS, _bridge_selection, FORCE_UNDIRECTED_BRIDGES);
 		printf("%s", "circle");
 	}
 	else if (strcmp(topology, "mesh") == 0) {
-		//SELECTED_TOPOLOGY = MESH;
 		_topology = new FullyConnected(AMOUNT_INTERCONNECTIONS, _bridge_selection, FORCE_UNDIRECTED_BRIDGES);
 		printf("%s", "mesh");
 	}
@@ -89,7 +83,8 @@ void Expanding::expand_graph(char* input_path, char* output_path) {
 	Edge** d_edge_data_expanding = (Edge**)malloc(sizeof(Edge*)*amount_of_sampled_graphs);
 
 	Sampled_Graph_Version* sampled_graph_version_list = new Sampled_Graph_Version[amount_of_sampled_graphs];
-	char current_label = 'a';
+	char current_label_1 = 'a';
+	char current_label_2 = 'a';
 
 	int* d_offsets;
 	int* d_indices;
@@ -136,7 +131,10 @@ void Expanding::expand_graph(char* input_path, char* output_path) {
 		gpuErrchk(cudaMemcpy(&sampled_graph_version->edges[0], d_edge_data_expanding[i], sizeof(Edge)*(h_size_edges_result), cudaMemcpyDeviceToHost));
 
 		// Label
-		sampled_graph_version->label = current_label++;
+		sampled_graph_version->label_1 = current_label_1;
+		sampled_graph_version->label_2 = current_label_2;
+
+		increment_labels(&current_label_1, &current_label_2);
 
 		// Copy data to the sampled version list
 		sampled_graph_version_list[i] = (*sampled_graph_version);
@@ -169,6 +167,21 @@ void Expanding::expand_graph(char* input_path, char* output_path) {
 
 	// Cleanup
 	delete[] sampled_graph_version_list;
+}
+
+void Expanding::increment_labels(char* label_1, char* label_2) {
+	if (*label_1 == 'z' && *label_2 == 'z') { // TODO: Check in the beginning of the expanding algo
+		printf("Expand scaling factor limit reached (26*26).");
+		exit(1);
+	}
+
+	if (*label_1 == 'z') {
+		*label_1 = 'a';
+		(*label_2)++;
+	}
+	else {
+		(*label_1)++;
+	}
 }
 
 int Expanding::get_thread_size() {
