@@ -74,9 +74,15 @@ void Expanding::expand_graph(char* input_path, char* output_path) {
 	COO_List* coo_list = _graph_io->load_graph_from_edge_list_file_to_coo(source_vertices, destination_vertices, input_path);
 	CSR_List* csr_list = _graph_io->convert_coo_to_csr_format(coo_list->source, coo_list->destination);
 
-	const int amount_of_sampled_graphs = SCALING_FACTOR / SAMPLING_FRACTION;
-	printf("Amount of sampled graph versions: %d", amount_of_sampled_graphs);
+	int amount_of_sampled_graphs = SCALING_FACTOR / SAMPLING_FRACTION;
 
+	float residu = fmod(SCALING_FACTOR,SAMPLING_FRACTION);
+	if (residu > 0) {
+		amount_of_sampled_graphs += 1;
+	}
+
+	printf("Amount of sampled graph versions: %d", amount_of_sampled_graphs);
+	
 	Sampled_Vertices** sampled_vertices_per_graph = (Sampled_Vertices**)malloc(sizeof(Sampled_Vertices)*amount_of_sampled_graphs);
 
 	int** d_size_collected_edges = (int**)malloc(sizeof(int*)*amount_of_sampled_graphs);
@@ -100,6 +106,12 @@ void Expanding::expand_graph(char* input_path, char* output_path) {
 	_sampler->SAMPLING_FRACTION = SAMPLING_FRACTION;
 
 	for (int i = 0; i < amount_of_sampled_graphs; i++) {
+		if (i == amount_of_sampled_graphs-1) {
+			if (residu>0) {
+				printf("Change sampe fraction to residu");
+				_sampler->SAMPLING_FRACTION = residu;
+			}
+		}
 		sampled_vertices_per_graph[i] = _sampler->perform_edge_based_node_sampling_step(coo_list->source, coo_list->destination);
 		printf("\nCollected %d vertices.", sampled_vertices_per_graph[i]->sampled_vertices_size);
 

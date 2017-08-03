@@ -27,11 +27,11 @@ __device__ int push_edge(Edge &edge, Edge* d_edge_data) {
 __global__ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices, Edge* d_edge_data) {
 	int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
 	
-	if (neighbor_index_start_offset < D_SIZE_VERTICES) {
+	if (neighbor_index_start_offset < D_SIZE_VERTICES && sampled_vertices[neighbor_index_start_offset]) {
 		int neighbor_index_end_offset = neighbor_index_start_offset + 1;
 
 		for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
-			if (sampled_vertices[neighbor_index_start_offset] && sampled_vertices[indices[n]]) {
+			if (sampled_vertices[indices[n]]) {
 				//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
 				Edge edge;
 				edge.source = neighbor_index_start_offset;

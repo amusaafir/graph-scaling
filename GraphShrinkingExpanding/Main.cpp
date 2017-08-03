@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\com-orkut.ungraph.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\soc-LiveJournal1.txt";
 		//char* input_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\coo\\pokec_coo.txt";
-		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\fb_20_times_expansion.txt";
+		char* output_path = "C:\\Users\\AJ\\Desktop\\new_datasets\\output\\testresidu.txt";
 
 		GraphIO* graph_io = new GraphIO();
 
