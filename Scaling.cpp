@@ -18,7 +18,7 @@ void Scaling::initScaling() {
     Graph* graph = graphLoader->loadGraph("/home/aj/Documents/graph_datasets/facebook_combined.txt");
 
     Sampling* sampling = new TIES(graph);
-    sampling->sample(0.3);
+    sampling->sample(0.5);
 
     delete(graph);
 }
