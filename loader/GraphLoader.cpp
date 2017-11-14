@@ -24,8 +24,8 @@ Graph* GraphLoader::loadGraph(std::string path) {
         graph->addEdge(source, target);
     }
 
-    std::cout << "Finished loading the graph. Counted: " << graph->getVertices().size() << " vertices and "
-                                                                                << graph->getEdges().size() << " edges.";
+    std::cout << "Finished loading the graph (" << graph->getVertices().size()
+              << " vertices and " << graph->getEdges().size() << " edges)." << std::endl;
 
     return graph;
 }

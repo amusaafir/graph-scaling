@@ -1,0 +1,4 @@
+-> Run 'scaling program': generate various different expansions of a given graph
+    -> Include cases by default where you shrink the graph and expand it to see whether the same result is obtained
+-> Combine sampling algorithms
+-> Cover integer overflow for large graphs (>max int amount of edges)

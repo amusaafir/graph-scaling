@@ -1,9 +1,8 @@
 #include "kernel.h"
 
-__device__ int d_edge_count = 0;
 __constant__ int D_SIZE_EDGES;
 __constant__ int D_SIZE_VERTICES;
-
+__device__ int d_edge_count = 0;
 void perform_induction_step(int block_size, int thread_size, int *d_sampled_vertices, int *d_offsets, int* d_indices, Edge* d_edge_data) {
 	perform_induction_step <<<block_size, thread_size >>>(d_sampled_vertices, d_offsets, d_indices, d_edge_data);
 }
@@ -62,7 +61,6 @@ __global__ void perform_induction_step_expanding(int* sampled_vertices, int* off
 
 		for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
 			if (sampled_vertices[neighbor_index_start_offset] && sampled_vertices[indices[n]]) {
-				//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
 				Edge edge;
 				edge.source = neighbor_index_start_offset;
 				edge.destination = indices[n];

@@ -16,6 +16,7 @@ private:
 
 public:
     void addVertex(int vertex);
+
     void addEdge(int source, int target);
 
     const std::unordered_set<int> &getVertices() const;

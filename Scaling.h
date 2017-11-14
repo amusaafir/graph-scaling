@@ -1,5 +1,5 @@
 //
-// Created by root on 12-11-17.
+// Created by Ahmed on 12-11-17.
 //
 
 #ifndef GRAPH_SCALING_TOOL_SCALER_H
@@ -7,14 +7,14 @@
 
 #include "loader/GraphLoader.h"
 
-class Scaler {
+class Scaling {
 private:
     GraphLoader* graphLoader;
     void initScaling();
 
 public:
-    Scaler();
-    ~Scaler();
+    Scaling();
+    ~Scaling();
 };
 
 

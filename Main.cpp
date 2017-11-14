@@ -1,5 +1,5 @@
 #include <iostream>
-#include "Scaler.h"
+#include "Scaling.h"
 
 std::string logo = "  __ ___  __  ___ _  _    __   ___ __  _   _ __  _  __   _____ __   __  _    \n"
         " / _] _ \\/  \\| _,\\ || | /' _/ / _//  \\| | | |  \\| |/ _] |_   _/__\\ /__\\| |   \n"
@@ -11,8 +11,8 @@ std::string version = "v1.0";
 int main() {
     std::cout << logo << version << std::endl;
 
-    Scaler* scaler = new Scaler();
-    delete(scaler);
+    Scaling* scaling = new Scaling();
+    delete(scaling);
 
     return 0;
 }
