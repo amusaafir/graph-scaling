@@ -15,9 +15,9 @@ protected:
     Graph* graph;
 public:
     Sampling(Graph* graph, std::string samplingAlgorithmName);
-    virtual void sample(float fraction) = 0;
-    int getRequiredVerticesFraction(float fraction);
-    int getRequiredEdgesFraction(float fraction);
+    virtual Graph* sample(float fraction) = 0;
+    int getNumberOfVerticesFromFraction(float fraction);
+    int getNumberOfEdgesFromFraction(float fraction);
     int getRandomIntBetweenRange(int min, int max);
 };
 

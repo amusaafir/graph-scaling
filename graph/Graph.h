@@ -27,6 +27,10 @@ public:
     const std::vector<Edge> &getEdges() const;
 
     void setEdges(const std::vector<Edge> &edges);
+
+    const std::string &getIdentifier() const;
+
+    void setIdentifier(const std::string &identifier);
 };
 
 

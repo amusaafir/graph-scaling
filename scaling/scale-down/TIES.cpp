@@ -8,14 +8,18 @@
  * Sampling orchestrator function for TIES.
  * @param fraction: from the total amount of vertices.
  */
-void TIES::sample(float fraction) {
-    this->graph = graph;
-
+Graph* TIES::sample(float fraction) {
     std::unordered_set<int> sampledVertices;
     executeEdgeBasedNodeSamplingStep(sampledVertices, fraction);
 
     std::vector<Edge> sampledEdges;
     executeInductionStep(sampledVertices, sampledEdges);
+
+    Graph* sampledGraph = new Graph();
+    sampledGraph->setVertices(sampledVertices);
+    sampledGraph->setEdges(sampledEdges);
+
+    return sampledGraph;
 }
 
 /**
@@ -27,7 +31,7 @@ void TIES::sample(float fraction) {
 void TIES::executeEdgeBasedNodeSamplingStep(std::unordered_set<int> &sampledVertices, float fraction) {
     std::cout << "Performing Edge-based Node Sampling step." << std::endl;
 
-    int requiredNumberOfVertices = getRequiredVerticesFraction(fraction);
+    int requiredNumberOfVertices = getNumberOfVerticesFromFraction(fraction);
 
     while (sampledVertices.size() < requiredNumberOfVertices) {
         Edge edge = getRandomEdge();
@@ -46,7 +50,7 @@ void TIES::executeEdgeBasedNodeSamplingStep(std::unordered_set<int> &sampledVert
  * @param sampledEdges - vector to hold the sampled edges, which are collected in this function.
  * @return
  */
-std::vector<Edge> TIES::executeInductionStep(std::unordered_set<int> &sampledVertices, std::vector<Edge> &sampledEdges) {
+void TIES::executeInductionStep(std::unordered_set<int> &sampledVertices, std::vector<Edge>& sampledEdges) {
     std::cout << "Performing total induction step." << std::endl;
 
     for (int i = 0; i < graph->getEdges().size(); i++) {
@@ -59,8 +63,6 @@ std::vector<Edge> TIES::executeInductionStep(std::unordered_set<int> &sampledVer
     }
 
     std::cout << "Finished performing total induction step: collected " << sampledEdges.size() << " edges." << std::endl;
-
-    return sampledEdges;
 }
 
 /**

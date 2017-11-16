@@ -11,35 +11,44 @@ ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, float samplingFraction) {
 }
 
 void ScaleUp::executeScaleUp(float scalingFactor) {
-    int amountOfSamples = scalingFactor / samplingFraction;
-    float remainingFraction = fmod(scalingFactor, samplingFraction);
-    bool shouldSampleRemainder = shouldSampleRemainingFraction(amountOfSamples, remainingFraction);
+    ScaleUpSamplesInfo* scaleUpSamplesInfo = new ScaleUpSamplesInfo(scalingFactor, samplingFraction);
 
-    std::cout << "Performing scale-up using a scaling factor of " << scalingFactor
-              << " and sample size of " << samplingFraction
-              << " (" << amountOfSamples << " different samples)" << "." << std::endl;
+    printScaleUpSetup(scalingFactor, scaleUpSamplesInfo);
 
-    createDifferentSamples(amountOfSamples, remainingFraction, shouldSampleRemainder);
+    createDifferentSamples(scaleUpSamplesInfo);
+
+    delete(scaleUpSamplesInfo);
 }
 
-void ScaleUp::createDifferentSamples(int amountOfSamples, float remainingFraction, bool shouldSampleRemainder) const {
-    for (int i = 0; i < amountOfSamples; i++) {
-        std::cout << "\n(" << i + 1 << "/" << amountOfSamples << ")" << std::endl;
+void ScaleUp::printScaleUpSetup(float scalingFactor, const ScaleUpSamplesInfo *scaleUpSamplesInfo) const {
+    std::cout << "Performing scale-up using a scaling factor of " << scalingFactor
+              << " and sample size of " << samplingFraction << ", resulting in "
+              << scaleUpSamplesInfo->getAmountOfSamples() << " different samples ";
 
-        if (shouldSampleRemainder && i == (amountOfSamples-1)) {
-            sampling->sample(remainingFraction);
+    if (scaleUpSamplesInfo->hasSamplingRemainder()) {
+        std::cout << "(" << scaleUpSamplesInfo->getAmountOfSamples() - 1 << " x " << samplingFraction
+                  << " and 1 x " << scaleUpSamplesInfo->getRemainder() << ")." << std::endl;
+    } else {
+        std::cout << "of size " << samplingFraction << " (for each sample)." << std::endl;
+    }
+}
+
+void ScaleUp::createDifferentSamples(ScaleUpSamplesInfo* scaleUpSamplesInfo) const {
+    for (int i = 0; i < scaleUpSamplesInfo->getAmountOfSamples(); i++) {
+        std::cout << "\n(" << i + 1 << "/" << scaleUpSamplesInfo->getAmountOfSamples()  << ")" << std::endl;
+
+        if (shouldApplyRemainderSampling(scaleUpSamplesInfo, i)) {
+            sampling->sample(scaleUpSamplesInfo->getRemainder());
             break;
         }
 
-       sampling->sample(samplingFraction);
+        Graph* sampledGraph = sampling->sample(samplingFraction);
+        sampledGraph->setIdentifier("aa");
+        //delete(sampledGraph);
     }
 }
 
-bool ScaleUp::shouldSampleRemainingFraction(int &amountOfSamples, float remainingFraction) {
-    if (remainingFraction > 0) {
-        amountOfSamples++;
-        return true;
-    }
-
-    return false;
+bool ScaleUp::shouldApplyRemainderSampling(const ScaleUpSamplesInfo *scaleUpSampleRemainder, int currentLoopIteration) const {
+    return currentLoopIteration == (scaleUpSampleRemainder->getAmountOfSamples() - 1)
+           && scaleUpSampleRemainder->hasSamplingRemainder();
 }

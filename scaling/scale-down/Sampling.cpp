@@ -9,11 +9,11 @@ Sampling::Sampling(Graph* graph, std::string samplingAlgorithmName) {
     std::cout << "Selected " << samplingAlgorithmName << " as sampling algorithm." << std::endl;
 }
 
-int Sampling::getRequiredVerticesFraction(float fraction) {
+int Sampling::getNumberOfVerticesFromFraction(float fraction) {
     return this->graph->getVertices().size() * fraction;
 }
 
-int Sampling::getRequiredEdgesFraction(float fraction) {
+int Sampling::getNumberOfEdgesFromFraction(float fraction) {
     return this->graph->getEdges().size() * fraction;
 }
 

@@ -28,3 +28,11 @@ const std::vector<Edge> &Graph::getEdges() const {
 void Graph::setEdges(const std::vector<Edge> &edges) {
     Graph::edges = edges;
 }
+
+const std::string &Graph::getIdentifier() const {
+    return identifier;
+}
+
+void Graph::setIdentifier(const std::string &identifier) {
+    Graph::identifier = identifier;
+}
