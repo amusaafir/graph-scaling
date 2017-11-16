@@ -18,7 +18,7 @@ private:
     Edge getRandomEdge();
 
 public:
-    TIES(Graph* graph) : Sampling(graph) {};
+    TIES(Graph* graph) : Sampling(graph, "TIES") { };
     void sample(float fraction);
 };
 

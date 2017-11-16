@@ -7,13 +7,14 @@
 
 #include <iostream>
 #include <random>
-#include "../graph/Graph.h"
+#include <string>
+#include "../../graph/Graph.h"
 
 class Sampling {
 protected:
     Graph* graph;
 public:
-    Sampling(Graph* graph);
+    Sampling(Graph* graph, std::string samplingAlgorithmName);
     virtual void sample(float fraction) = 0;
     int getRequiredVerticesFraction(float fraction);
     int getRequiredEdgesFraction(float fraction);

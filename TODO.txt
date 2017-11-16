@@ -3,3 +3,4 @@
     -> Include cases by default where you shrink the graph and expand it to see whether the same result is obtained
 -> Combine sampling algorithms
 -> Cover integer overflow for large graphs (>max int amount of edges)
+-> Add separate scale down class for consistency (another way than sampling might be used e.g.)

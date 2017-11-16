@@ -11,6 +11,7 @@
 
 class Graph {
 private:
+    std::string identifier;
     std::unordered_set<int> vertices;
     std::vector<Edge> edges;
 

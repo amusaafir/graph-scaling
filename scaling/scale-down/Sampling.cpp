@@ -4,8 +4,9 @@
 
 #include "Sampling.h"
 
-Sampling::Sampling(Graph* graph) {
+Sampling::Sampling(Graph* graph, std::string samplingAlgorithmName) {
     this->graph = graph;
+    std::cout << "Selected " << samplingAlgorithmName << " as sampling algorithm." << std::endl;
 }
 
 int Sampling::getRequiredVerticesFraction(float fraction) {

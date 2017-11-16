@@ -1,5 +1,7 @@
 #include <iostream>
-#include "Scaling.h"
+#include "scaling/ScalingManager.h"
+#include "loader/GraphLoader.h"
+#include "graph/Graph.h"
 
 std::string logo = "  __ ___  __  ___ _  _    __   ___ __  _   _ __  _  __   _____ __   __  _    \n"
         " / _] _ \\/  \\| _,\\ || | /' _/ / _//  \\| | | |  \\| |/ _] |_   _/__\\ /__\\| |   \n"
@@ -11,8 +13,16 @@ std::string version = "v1.0";
 int main() {
     std::cout << logo << version << std::endl;
 
-    Scaling* scaling = new Scaling();
-    delete(scaling);
+    GraphLoader* graphLoader = new GraphLoader();
+    Graph* graph = graphLoader->loadGraph("/home/aj/Documents/graph_datasets/facebook_combined.txt");
+    delete(graphLoader);
+
+    ScalingManager* scalingManager = new ScalingManager(graph);
+    scalingManager->scaleUp(3.4, 0.5);
+    //scalingManager->scaleDown(0.5);
+    delete(scalingManager);
+
+    delete(graph);
 
     return 0;
 }
