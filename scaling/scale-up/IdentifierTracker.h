@@ -1,0 +1,14 @@
+//
+// Created by root on 20-11-17.
+//
+
+#ifndef GRAPH_SCALING_TOOL_IDENTIFIERTRACKER_H
+#define GRAPH_SCALING_TOOL_IDENTIFIERTRACKER_H
+
+
+class IdentifierTracker {
+
+};
+
+
+#endif //GRAPH_SCALING_TOOL_IDENTIFIERTRACKER_H
