@@ -1,6 +1,4 @@
-//
 // Created by Ahmed on 12-11-17.
-//
 
 #ifndef GRAPH_SCALING_TOOL_GRAPH_H
 #define GRAPH_SCALING_TOOL_GRAPH_H

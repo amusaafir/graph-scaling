@@ -9,6 +9,7 @@
 #include "ScaleUpSamplesInfo.h"
 #include "../../graph/Graph.h"
 #include "../scale-down/Sampling.h"
+#include "IdentifierTracker.h"
 
 class ScaleUp {
 private:
@@ -16,11 +17,13 @@ private:
     Sampling* sampling;
     float samplingFraction;
 
-    bool shouldApplyRemainderSampling(const ScaleUpSamplesInfo *scaleUpSampleRemainder, int currentLoopIteration) const;
+    bool shouldSampleRemainder(ScaleUpSamplesInfo *scaleUpSampleRemainder, int currentLoopIteration);
 
-    void printScaleUpSetup(float scalingFactor, const ScaleUpSamplesInfo *scaleUpSamplesInfo) const;
+    void printScaleUpSetup(float scalingFactor, const ScaleUpSamplesInfo *scaleUpSamplesInfo);
 
-    void createDifferentSamples(ScaleUpSamplesInfo* scaleUpSamplesInfo) const;
+    std::vector<Graph*> createDistinctSamples(ScaleUpSamplesInfo *scaleUpSamplesInfo);
+
+    void createSample(IdentifierTracker *identifierTracker, std::vector<Graph*> &samples, float samplingFraction);
 
 public:
     ScaleUp(Graph* graph, Sampling* sampling, float samplingFraction);

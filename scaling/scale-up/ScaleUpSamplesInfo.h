@@ -1,5 +1,5 @@
 //
-// Created by root on 16-11-17.
+// Created by Ahmed on 16-11-17.
 //
 
 #ifndef GRAPH_SCALING_TOOL_SCALEUPSAMPLEREMAINDER_H
