@@ -3,7 +3,7 @@
 //
 
 #include "ScaleUp.h"
-#include "IdentifierTracker.h"
+#include "identifier/IdentifierTracker.h"
 
 ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, float samplingFraction) {
     this->graph = graph;

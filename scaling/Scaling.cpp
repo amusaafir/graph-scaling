@@ -2,7 +2,7 @@
 // Created by Ahmed on 12-11-17.
 //
 
-#include "ScalingManager.h"
+#include "Scaling.h"
 
 ScalingManager::ScalingManager(Graph* graph) {
     this->graph = graph;

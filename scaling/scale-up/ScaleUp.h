@@ -9,7 +9,7 @@
 #include "ScaleUpSamplesInfo.h"
 #include "../../graph/Graph.h"
 #include "../scale-down/Sampling.h"
-#include "IdentifierTracker.h"
+#include "identifier/IdentifierTracker.h"
 
 class ScaleUp {
 private:
