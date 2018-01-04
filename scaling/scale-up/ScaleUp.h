@@ -6,10 +6,10 @@
 #define GRAPH_SCALING_TOOL_SCALEUP_H
 
 #include <math.h>
-#include "ScaleUpSamplesInfo.h"
+#include "helper/ScaleUpSamplesInfo.h"
 #include "../../graph/Graph.h"
 #include "../scale-down/Sampling.h"
-#include "identifier/IdentifierTracker.h"
+#include "helper/IdentifierTracker.h"
 
 class ScaleUp {
 private:

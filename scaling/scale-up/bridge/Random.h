@@ -9,8 +9,8 @@
 
 class Random : public Bridge {
 public:
-    Random(Graph *left, Graph *right, int numberOfInterconnections, bool forceUndirectedEdges);
-    void addBridges();
+    Random(int numberOfInterconnections, bool forceUndirectedEdges);
+    void addBridgesBetweenGraphs(Graph *left, Graph *right);
 };
 
 

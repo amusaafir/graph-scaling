@@ -8,7 +8,7 @@ IdentifierTracker::IdentifierTracker() {
     this->currentGraphSampleIndex = 1;
 }
 
-std::string IdentifierTracker::getNewIdentifier() {
+std::string IdentifierTracker::createNewIdentifier() {
     char firstIdentifier = 'a', secondIdentifier = 'a';
 
     firstIdentifier += fmod(currentGraphSampleIndex, 26);

@@ -4,9 +4,7 @@
 
 #include "Bridge.h"
 
-Bridge::Bridge(Graph *left, Graph *right, int numberOfInterconnections, bool forceUndirectedEdges) {
-        this->left = left;
-        this->right = right;
+Bridge::Bridge(int numberOfInterconnections, bool forceDirectedEdges) {
         this->numberOfInterconnections = numberOfInterconnections;
-        this->forceUndirectedEdges = forceUndirectedEdges;
+        this->forceDirectedEdges = forceDirectedEdges;
 }

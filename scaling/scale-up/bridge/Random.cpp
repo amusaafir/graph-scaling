@@ -4,8 +4,8 @@
 
 #include "Random.h"
 
-Random::Random(Graph *left, Graph *right, int numberOfInterconnections, bool forceUndirectedEdges)
-        : Bridge(left, right, numberOfInterconnections, forceUndirectedEdges) {}
+Random::Random(int numberOfInterconnections, bool forceUndirectedEdges)
+        : Bridge(numberOfInterconnections, forceUndirectedEdges) {}
 
-void Random::addBridges() {
+void Random::addBridgesBetweenGraphs(Graph *left, Graph *right) {
 }

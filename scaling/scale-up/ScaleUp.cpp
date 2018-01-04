@@ -3,7 +3,7 @@
 //
 
 #include "ScaleUp.h"
-#include "identifier/IdentifierTracker.h"
+#include "helper/IdentifierTracker.h"
 
 ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, float samplingFraction) {
     this->graph = graph;
@@ -56,8 +56,7 @@ std::vector<Graph*> ScaleUp::createDistinctSamples(ScaleUpSamplesInfo *scaleUpSa
 
 void ScaleUp::createSample(IdentifierTracker *identifierTracker, std::vector<Graph*> &samples, float samplingFraction) {
     Graph* sampledGraph = sampling->sample(samplingFraction);
-    sampledGraph->setIdentifier(identifierTracker->getNewIdentifier());
-
+    sampledGraph->setIdentifier(identifierTracker->createNewIdentifier());
     samples.push_back(sampledGraph);
 }
 

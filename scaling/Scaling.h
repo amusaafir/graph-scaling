@@ -10,12 +10,12 @@
 #include "scale-down/TIES.h"
 #include "scale-up/ScaleUp.h"
 
-class ScalingManager {
+class Scaling {
 private:
     Graph* graph;
 
 public:
-    ScalingManager(Graph* graph);
+    Scaling(Graph* graph);
     void scaleUp(float scalingFactor, float samplingFraction);
     void scaleDown(float samplingFraction);
 };

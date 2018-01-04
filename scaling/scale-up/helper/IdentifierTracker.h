@@ -17,7 +17,7 @@ private:
 
 public:
     IdentifierTracker();
-    std::string getNewIdentifier();
+    std::string createNewIdentifier();
 };
 
 

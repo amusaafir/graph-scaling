@@ -4,3 +4,7 @@
 
 #include "Topology.h"
 
+Topology::Topology(std::vector<Graph*> samples, Bridge* bridge) {
+    this->samples = samples;
+    this->bridge = bridge;
+}

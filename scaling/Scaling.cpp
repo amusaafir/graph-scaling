@@ -4,16 +4,16 @@
 
 #include "Scaling.h"
 
-ScalingManager::ScalingManager(Graph* graph) {
+Scaling::Scaling(Graph* graph) {
     this->graph = graph;
 }
 
-void ScalingManager::scaleUp(float scalingFactor, float samplingFraction) {
+void Scaling::scaleUp(float scalingFactor, float samplingFraction) {
     ScaleUp* scaleUp = new ScaleUp(graph, new TIES(graph), samplingFraction);
     scaleUp->executeScaleUp(scalingFactor);
 }
 
-void ScalingManager::scaleDown(float samplingFraction) {
+void Scaling::scaleDown(float samplingFraction) {
     Sampling* sampling = new TIES(graph);
     sampling->sample(samplingFraction);
 

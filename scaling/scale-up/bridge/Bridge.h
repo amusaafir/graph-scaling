@@ -9,13 +9,11 @@
 
 class Bridge {
 protected:
-    Graph* left;
-    Graph* right;
     int numberOfInterconnections;
-    bool forceUndirectedEdges;
+    bool forceDirectedEdges;
 public:
-    Bridge(Graph* left, Graph* right, int numberOfInterconnections, bool forceUndirectedEdges);
-    virtual void addBridges() = 0;
+    Bridge(int numberOfInterconnections, bool forceDirectedEdges);
+    virtual void addBridgesBetweenGraphs(Graph *left, Graph *right) = 0;
 };
 
 

@@ -1,7 +1,7 @@
 #include <iostream>
 #include "scaling/Scaling.h"
 #include "loader/GraphLoader.h"
-#include "scaling/scale-up/identifier/IdentifierTracker.h"
+#include "scaling/scale-up/helper/IdentifierTracker.h"
 
 
 std::string logo = "  __ ___  __  ___ _  _    __   ___ __  _   _ __  _  __   _____ __   __  _    \n"
@@ -20,10 +20,10 @@ int main() {
 
     delete(graphLoader);
 
-    ScalingManager* scalingManager = new ScalingManager(graph);
-    scalingManager->scaleUp(3.7, 0.5);
-    //scalingManager->scaleDown(0.5);
-    delete(scalingManager);
+    Scaling* scaling = new Scaling(graph);
+    scaling->scaleUp(3.7, 0.5);
+    //scaling->scaleDown(0.5);
+    delete(scaling);
 
     delete(graph);
 
