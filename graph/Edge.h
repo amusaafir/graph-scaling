@@ -5,20 +5,33 @@
 #ifndef GRAPH_SCALING_TOOL_EDGE_H
 #define GRAPH_SCALING_TOOL_EDGE_H
 
+template<typename T>
+
 class Edge {
 private:
-    int source;
-    int target;
+    T source;
+    T target;
 public:
-    Edge(int source, int target);
+    Edge(T source, T target) {
+        this->source = source;
+        this->target = target;
+    }
 
-    int getSource() const;
+    T getSource() const {
+        return source;
+    }
 
-    void setSource(int source);
+    void setSource(T source) {
+        this->source = source;
+    }
 
-    int getTarget() const;
+    T getTarget() const {
+        return target;
+    }
 
-    void setTarget(int target);
+    void setTarget(T target) {
+        this->target = target;
+    }
 };
 
 

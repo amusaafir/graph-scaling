@@ -9,10 +9,12 @@
 #include <random>
 
 class RandomBridge : public Bridge {
+private:
+    int getRandomVertexFromGraph(Graph* graph);
+
 public:
     RandomBridge(int numberOfInterconnections, bool forceUndirectedEdges);
-    void addBridgesBetweenGraphs(Graph *left, Graph *right);
-    int getRandomVertexFromGraph(Graph* graph);
+    std::vector<Edge<std::string>*> addBridgesBetweenGraphs(Graph *left, Graph *right);
 };
 
 

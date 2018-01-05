@@ -13,7 +13,7 @@ protected:
     bool addDirectedBridges;
 public:
     Bridge(int numberOfInterconnections, bool addDirectedBridges);
-    virtual void addBridgesBetweenGraphs(Graph *left, Graph *right) = 0;
+    virtual std::vector<Edge<std::string>*> addBridgesBetweenGraphs(Graph *left, Graph *right) = 0;
 };
 
 

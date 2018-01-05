@@ -9,7 +9,7 @@ void Graph::addVertex(int vertex) {
 }
 
 void Graph::addEdge(int source, int target) {
-    Edge edge(source, target);
+    Edge<int> edge(source, target);
     edges.push_back(edge);
 }
 
@@ -21,11 +21,11 @@ void Graph::setVertices(const std::unordered_set<int> &vertices) {
     Graph::vertices = vertices;
 }
 
-const std::vector<Edge> &Graph::getEdges() const {
+const std::vector<Edge<int>> &Graph::getEdges() const {
     return edges;
 }
 
-void Graph::setEdges(const std::vector<Edge> &edges) {
+void Graph::setEdges(const std::vector<Edge<int>> &edges) {
     Graph::edges = edges;
 }
 

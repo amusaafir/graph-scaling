@@ -12,7 +12,7 @@ Graph* TIES::sample(float fraction) {
     std::unordered_set<int> sampledVertices;
     executeEdgeBasedNodeSamplingStep(sampledVertices, fraction);
 
-    std::vector<Edge> sampledEdges;
+    std::vector<Edge<int>> sampledEdges;
     executeInductionStep(sampledVertices, sampledEdges);
 
     Graph* sampledGraph = new Graph();
@@ -34,7 +34,7 @@ void TIES::executeEdgeBasedNodeSamplingStep(std::unordered_set<int> &sampledVert
     int requiredNumberOfVertices = getNumberOfVerticesFromFraction(fraction);
 
     while (sampledVertices.size() < requiredNumberOfVertices) {
-        Edge edge = getRandomEdge();
+        Edge<int> edge = getRandomEdge();
         sampledVertices.insert(edge.getSource());
         sampledVertices.insert(edge.getTarget());
     }
@@ -50,11 +50,11 @@ void TIES::executeEdgeBasedNodeSamplingStep(std::unordered_set<int> &sampledVert
  * @param sampledEdges - vector to hold the sampled edges, which are collected in this function.
  * @return
  */
-void TIES::executeInductionStep(std::unordered_set<int> &sampledVertices, std::vector<Edge>& sampledEdges) {
+void TIES::executeInductionStep(std::unordered_set<int> &sampledVertices, std::vector<Edge<int>>& sampledEdges) {
     std::cout << "Performing total induction step." << std::endl;
 
     for (int i = 0; i < graph->getEdges().size(); i++) {
-        Edge edge = graph->getEdges()[i];
+        Edge<int> edge = graph->getEdges()[i];
 
         if (isVertexInSampledVertices(edge.getSource(), sampledVertices)
             && isVertexInSampledVertices(edge.getTarget(), sampledVertices)) {
@@ -79,6 +79,6 @@ bool TIES::isVertexInSampledVertices(int vertex, std::unordered_set<int> &sample
  * Returns a random edge from the graph.
  * @return
  */
-Edge TIES::getRandomEdge() {
+Edge<int> TIES::getRandomEdge() {
     return graph->getEdges()[getRandomIntBetweenRange(0, graph->getEdges().size() - 1)];
 }

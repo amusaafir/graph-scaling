@@ -11,7 +11,7 @@ class Graph {
 private:
     std::string identifier;
     std::unordered_set<int> vertices;
-    std::vector<Edge> edges;
+    std::vector<Edge<int>> edges;
 
 public:
     void addVertex(int vertex);
@@ -22,9 +22,9 @@ public:
 
     void setVertices(const std::unordered_set<int> &vertices);
 
-    const std::vector<Edge> &getEdges() const;
+    const std::vector<Edge<int>> &getEdges() const;
 
-    void setEdges(const std::vector<Edge> &edges);
+    void setEdges(const std::vector<Edge<int>> &edges);
 
     const std::string &getIdentifier() const;
 

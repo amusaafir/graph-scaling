@@ -8,19 +8,23 @@
 RandomBridge::RandomBridge(int numberOfInterconnections, bool addDirectedBridges)
         : Bridge(numberOfInterconnections, addDirectedBridges) {}
 
-void RandomBridge::addBridgesBetweenGraphs(Graph *left, Graph *right) {
-    std::vector<Edge*> bridges;
+std::vector<Edge<std::string>*> RandomBridge::addBridgesBetweenGraphs(Graph *left, Graph *right) {
+    std::vector<Edge<std::string>*> bridges;
 
     for (int i = 0; i < numberOfInterconnections; i++) {
         int vertexSource = getRandomVertexFromGraph(left);
         int vertexTarget = getRandomVertexFromGraph(right);
 
-        bridges.push_back(new Edge(vertexSource, vertexTarget));
+        bridges.push_back(new Edge<std::string>(std::to_string(vertexSource) + left->getIdentifier(),
+                                                std::to_string(vertexTarget) + right->getIdentifier()));
 
         if (!addDirectedBridges) {
-            bridges.push_back(new Edge(vertexTarget, vertexSource));
+            bridges.push_back(new Edge<std::string>(std::to_string(vertexTarget) + right->getIdentifier(),
+                                                    std::to_string(vertexSource) + left->getIdentifier()                                                    ));
         }
     }
+
+    return bridges;
 }
 
 int RandomBridge::getRandomVertexFromGraph(Graph *graph) {
@@ -31,7 +35,7 @@ int RandomBridge::getRandomVertexFromGraph(Graph *graph) {
     std::uniform_int_distribution<int> randomEdgeDist(0, graph->getEdges().size() - 1);
 
 
-    Edge* randomEdge;
+    Edge<int>* randomEdge;
 
     try {
         *randomEdge = graph->getEdges()[randomEdgeDist(engine)];
