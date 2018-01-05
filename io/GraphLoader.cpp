@@ -9,10 +9,18 @@ Graph* GraphLoader::loadGraph(std::string path) {
 
     Graph* graph = new Graph();
     std::ifstream infile(path);
+    readLines(graph, infile);
+
+    std::cout << "Finished loading the graph (" << graph->getVertices().size()
+              << " vertices and " << graph->getEdges().size() << " edges)." << std::endl;
+
+    return graph;
+}
+
+void GraphLoader::readLines(Graph *graph, std::ifstream &infile) const {
     std::string line;
 
-    while (std::getline(infile, line))
-    {
+    while (getline(infile, line)) {
         std::istringstream iss(line);
         int source, target;
         if (!(iss >> source >> target)) {
@@ -23,9 +31,4 @@ Graph* GraphLoader::loadGraph(std::string path) {
         graph->addVertex(target);
         graph->addEdge(source, target);
     }
-
-    std::cout << "Finished loading the graph (" << graph->getVertices().size()
-              << " vertices and " << graph->getEdges().size() << " edges)." << std::endl;
-
-    return graph;
 }

@@ -14,6 +14,8 @@
 class GraphLoader {
 public:
     Graph* loadGraph(std::string path);
+
+    void readLines(Graph *graph, std::ifstream &infile) const;
 };
 
 

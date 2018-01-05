@@ -1,6 +1,6 @@
 #include <iostream>
 #include "scaling/Scaling.h"
-#include "loader/GraphLoader.h"
+#include "io/GraphLoader.h"
 #include "scaling/scale-up/IdentifierTracker.h"
 #include "scaling/scale-up/bridge/RandomBridge.h"
 #include "scaling/scale-up/topology/StarTopology.h"
