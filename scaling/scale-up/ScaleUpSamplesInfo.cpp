@@ -47,3 +47,7 @@ float ScaleUpSamplesInfo::getScalingFactor() {
 float ScaleUpSamplesInfo::getSamplingFraction() {
     return samplingFraction;
 }
+
+Topology* ScaleUpSamplesInfo::getTopology() {
+    return topology;
+}

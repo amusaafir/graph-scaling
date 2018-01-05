@@ -9,7 +9,7 @@
 #include "../bridge/Bridge.h"
 
 class Topology {
-private:
+protected:
     Bridge* bridge;
 public:
     Topology(Bridge* bridge);

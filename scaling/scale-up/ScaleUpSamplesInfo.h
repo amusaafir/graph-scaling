@@ -35,6 +35,8 @@ public:
     float getScalingFactor();
 
     float getSamplingFraction();
+
+    Topology* getTopology();
 };
 
 

@@ -18,7 +18,9 @@ void ScaleUp::executeScaleUp() {
 
     std::cout << "Length sample size: " << samples.size() << std::endl;
 
-    // TODO: star implementation
+    std::vector<Edge<std::string>*> bridges = scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples);
+
+
 
     delete(scaleUpSamplesInfo);
 }
