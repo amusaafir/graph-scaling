@@ -5,38 +5,38 @@
 #include "ScaleUp.h"
 #include "IdentifierTracker.h"
 
-ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, float samplingFraction) {
+ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, ScaleUpSamplesInfo* scaleUpSamplesInfo) {
     this->graph = graph;
     this->sampling = sampling;
-    this->samplingFraction = samplingFraction;
+    this->scaleUpSamplesInfo = scaleUpSamplesInfo;
 }
 
-void ScaleUp::executeScaleUp(float scalingFactor) {
-    ScaleUpSamplesInfo* scaleUpSamplesInfo = new ScaleUpSamplesInfo(scalingFactor, samplingFraction);
+void ScaleUp::executeScaleUp() {
+    printScaleUpSetup();
 
-    printScaleUpSetup(scalingFactor, scaleUpSamplesInfo);
-
-    std::vector<Graph*> samples = createDistinctSamples(scaleUpSamplesInfo);
+    std::vector<Graph*> samples = createDistinctSamples();
 
     std::cout << "Length sample size: " << samples.size() << std::endl;
+
+    // TODO: star implementation
 
     delete(scaleUpSamplesInfo);
 }
 
-void ScaleUp::printScaleUpSetup(float scalingFactor, const ScaleUpSamplesInfo *scaleUpSamplesInfo) {
-    std::cout << "Performing scale-up using a scaling factor of " << scalingFactor
-              << " and sample size of " << samplingFraction << ", resulting in "
+void ScaleUp::printScaleUpSetup() {
+    std::cout << "Performing scale-up using a scaling factor of " << scaleUpSamplesInfo->getScalingFactor()
+              << " and sample size of " << scaleUpSamplesInfo->getSamplingFraction() << ", resulting in "
               << scaleUpSamplesInfo->getAmountOfSamples() << " different samples ";
 
     if (scaleUpSamplesInfo->hasSamplingRemainder()) {
-        std::cout << "(" << scaleUpSamplesInfo->getAmountOfSamples() - 1 << " x " << samplingFraction
+        std::cout << "(" << scaleUpSamplesInfo->getAmountOfSamples() - 1 << " x " << scaleUpSamplesInfo->getSamplingFraction()
                   << " and 1 x " << scaleUpSamplesInfo->getRemainder() << ")." << std::endl;
     } else {
-        std::cout << "of size " << samplingFraction << " (for each sample)." << std::endl;
+        std::cout << "of size " << scaleUpSamplesInfo->getSamplingFraction() << " (for each sample)." << std::endl;
     }
 }
 
-std::vector<Graph*> ScaleUp::createDistinctSamples(ScaleUpSamplesInfo *scaleUpSamplesInfo) {
+std::vector<Graph*> ScaleUp::createDistinctSamples() {
     IdentifierTracker* identifierTracker = new IdentifierTracker();
     std::vector<Graph*> samples;
 
@@ -48,7 +48,7 @@ std::vector<Graph*> ScaleUp::createDistinctSamples(ScaleUpSamplesInfo *scaleUpSa
             break;
         }
 
-        createSample(identifierTracker, samples, samplingFraction);
+        createSample(identifierTracker, samples, scaleUpSamplesInfo->getSamplingFraction());
     }
 
     return samples;
@@ -60,8 +60,8 @@ void ScaleUp::createSample(IdentifierTracker *identifierTracker, std::vector<Gra
     samples.push_back(sampledGraph);
 }
 
-bool ScaleUp::shouldSampleRemainder(ScaleUpSamplesInfo *scaleUpSampleRemainder, int currentLoopIteration) {
-    bool isLastSamplingIteration = currentLoopIteration == (scaleUpSampleRemainder->getAmountOfSamples() - 1);
+bool ScaleUp::shouldSampleRemainder(ScaleUpSamplesInfo *scaleUpSamplesInfo, int currentLoopIteration) {
+    bool isLastSamplingIteration = currentLoopIteration == (scaleUpSamplesInfo->getAmountOfSamples() - 1);
 
-    return isLastSamplingIteration && scaleUpSampleRemainder->hasSamplingRemainder();
+    return isLastSamplingIteration && scaleUpSamplesInfo->hasSamplingRemainder();
 }

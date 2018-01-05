@@ -3,6 +3,7 @@
 #include "loader/GraphLoader.h"
 #include "scaling/scale-up/IdentifierTracker.h"
 #include "scaling/scale-up/bridge/RandomBridge.h"
+#include "scaling/scale-up/topology/StarTopology.h"
 
 
 std::string logo = "  __ ___  __  ___ _  _    __   ___ __  _   _ __  _  __   _____ __   __  _    \n"
@@ -22,7 +23,7 @@ int main() {
     delete(graphLoader);
 
     Scaling* scaling = new Scaling(graph);
-    scaling->scaleUp(3.7, 0.5);
+    scaling->scaleUp(new ScaleUpSamplesInfo(new StarTopology(new RandomBridge(100, false)), 3.7, 0.5));
     //scaling->scaleDown(0.5);
     delete(scaling);
 

@@ -4,7 +4,11 @@
 
 #include "ScaleUpSamplesInfo.h"
 
-ScaleUpSamplesInfo::ScaleUpSamplesInfo(float scalingFactor, float samplingFraction) {
+ScaleUpSamplesInfo::ScaleUpSamplesInfo(Topology* topology, float scalingFactor, float samplingFraction) {
+    this->topology = topology;
+    this->scalingFactor = scalingFactor;
+    this->samplingFraction = samplingFraction;
+
     setRemainder(fmod(scalingFactor, samplingFraction));
     setAmountOfSamples(scalingFactor / samplingFraction);
     determineAdditionalSampling();
@@ -34,4 +38,12 @@ void ScaleUpSamplesInfo::determineAdditionalSampling() {
     if (hasSamplingRemainder()) {
         this->amountOfSamples++;
     }
+}
+
+float ScaleUpSamplesInfo::getScalingFactor() {
+    return scalingFactor;
+}
+
+float ScaleUpSamplesInfo::getSamplingFraction() {
+    return samplingFraction;
 }

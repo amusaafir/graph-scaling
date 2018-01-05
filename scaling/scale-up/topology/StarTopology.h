@@ -5,9 +5,12 @@
 #ifndef GRAPH_SCALING_TOOL_STAR_H
 #define GRAPH_SCALING_TOOL_STAR_H
 
+#include "Topology.h"
 
-class StarTopology {
-
+class StarTopology : public Topology {
+public:
+    StarTopology(Bridge* bridge);
+    std::vector<Edge<std::string>*> getBridgeEdges(std::vector<Graph*> samples);
 };
 
 

@@ -15,20 +15,20 @@ class ScaleUp {
 private:
     Graph* graph;
     Sampling* sampling;
-    float samplingFraction;
+    ScaleUpSamplesInfo* scaleUpSamplesInfo;
 
-    bool shouldSampleRemainder(ScaleUpSamplesInfo *scaleUpSampleRemainder, int currentLoopIteration);
+    bool shouldSampleRemainder(ScaleUpSamplesInfo *scaleUpSamplesInfo, int currentLoopIteration);
 
-    void printScaleUpSetup(float scalingFactor, const ScaleUpSamplesInfo *scaleUpSamplesInfo);
+    void printScaleUpSetup();
 
-    std::vector<Graph*> createDistinctSamples(ScaleUpSamplesInfo *scaleUpSamplesInfo);
+    std::vector<Graph*> createDistinctSamples();
 
     void createSample(IdentifierTracker *identifierTracker, std::vector<Graph*> &samples, float samplingFraction);
 
 public:
-    ScaleUp(Graph* graph, Sampling* sampling, float samplingFraction);
+    ScaleUp(Graph* graph, Sampling* sampling, ScaleUpSamplesInfo* scaleUpSamplesInfo);
 
-    void executeScaleUp(float scalingFactor);
+    void executeScaleUp();
 };
 
 

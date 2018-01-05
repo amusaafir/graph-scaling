@@ -16,7 +16,7 @@ private:
 
 public:
     Scaling(Graph* graph);
-    void scaleUp(float scalingFactor, float samplingFraction);
+    void scaleUp(ScaleUpSamplesInfo* scaleUpSamplesInfo);
     void scaleDown(float samplingFraction);
 };
 

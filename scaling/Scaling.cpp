@@ -3,14 +3,16 @@
 //
 
 #include "Scaling.h"
+#include "scale-up/topology/StarTopology.h"
+#include "scale-up/bridge/RandomBridge.h"
 
 Scaling::Scaling(Graph* graph) {
     this->graph = graph;
 }
 
-void Scaling::scaleUp(float scalingFactor, float samplingFraction) {
-    ScaleUp* scaleUp = new ScaleUp(graph, new TIES(graph), samplingFraction);
-    scaleUp->executeScaleUp(scalingFactor);
+void Scaling::scaleUp(ScaleUpSamplesInfo* scaleUpSamplesInfo) {
+    ScaleUp* scaleUp = new ScaleUp(graph, new TIES(graph), scaleUpSamplesInfo);
+    scaleUp->executeScaleUp();
 }
 
 void Scaling::scaleDown(float samplingFraction) {
