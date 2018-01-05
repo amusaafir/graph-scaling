@@ -80,5 +80,5 @@ bool TIES::isVertexInSampledVertices(int vertex, std::unordered_set<int> &sample
  * @return
  */
 Edge TIES::getRandomEdge() {
-    return graph->getEdges()[getRandomIntBetweenRange(0, graph->getEdges().size())];
+    return graph->getEdges()[getRandomIntBetweenRange(0, graph->getEdges().size() - 1)];
 }

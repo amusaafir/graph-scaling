@@ -6,7 +6,7 @@
 #define GRAPH_SCALING_TOOL_HIGHDEGREE_H
 
 
-class HighDegree {
+class HighDegreeBridge {
 
 };
 

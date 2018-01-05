@@ -4,7 +4,7 @@
 
 #include "Bridge.h"
 
-Bridge::Bridge(int numberOfInterconnections, bool forceDirectedEdges) {
+Bridge::Bridge(int numberOfInterconnections, bool addDirectedBridges) {
         this->numberOfInterconnections = numberOfInterconnections;
-        this->forceDirectedEdges = forceDirectedEdges;
+        this->addDirectedBridges = addDirectedBridges;
 }

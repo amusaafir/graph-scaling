@@ -6,11 +6,13 @@
 #define GRAPH_SCALING_TOOL_RANDOM_H
 
 #include "Bridge.h"
+#include <random>
 
-class Random : public Bridge {
+class RandomBridge : public Bridge {
 public:
-    Random(int numberOfInterconnections, bool forceUndirectedEdges);
+    RandomBridge(int numberOfInterconnections, bool forceUndirectedEdges);
     void addBridgesBetweenGraphs(Graph *left, Graph *right);
+    int getRandomVertexFromGraph(Graph* graph);
 };
 
 

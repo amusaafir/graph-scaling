@@ -21,5 +21,6 @@ int Sampling::getRandomIntBetweenRange(int min, int max) {
     std::random_device seed;
     std::mt19937 engine(seed());
     std::uniform_int_distribution<int> dist(min, max);
+
     return dist(engine);
 }

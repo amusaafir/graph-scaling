@@ -10,9 +10,9 @@
 class Bridge {
 protected:
     int numberOfInterconnections;
-    bool forceDirectedEdges;
+    bool addDirectedBridges;
 public:
-    Bridge(int numberOfInterconnections, bool forceDirectedEdges);
+    Bridge(int numberOfInterconnections, bool addDirectedBridges);
     virtual void addBridgesBetweenGraphs(Graph *left, Graph *right) = 0;
 };
 

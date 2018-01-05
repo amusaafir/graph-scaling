@@ -6,7 +6,7 @@
 #define GRAPH_SCALING_TOOL_STAR_H
 
 
-class Star {
+class StarTopology {
 
 };
 

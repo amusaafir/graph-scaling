@@ -1,7 +1,8 @@
 #include <iostream>
 #include "scaling/Scaling.h"
 #include "loader/GraphLoader.h"
-#include "scaling/scale-up/helper/IdentifierTracker.h"
+#include "scaling/scale-up/IdentifierTracker.h"
+#include "scaling/scale-up/bridge/RandomBridge.h"
 
 
 std::string logo = "  __ ___  __  ___ _  _    __   ___ __  _   _ __  _  __   _____ __   __  _    \n"
