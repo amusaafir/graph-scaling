@@ -43,3 +43,7 @@ int RandomBridge::getRandomVertexFromGraph(Graph *graph) {
 
     return (randomVertexFromEdgeDist(engine) > 0) ? randomEdge->getSource() : randomEdge->getTarget();
 }
+
+std::string RandomBridge::getName() {
+    return "RandomBridge";
+}

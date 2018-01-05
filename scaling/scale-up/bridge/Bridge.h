@@ -14,6 +14,7 @@ protected:
 public:
     Bridge(int numberOfInterconnections, bool addDirectedBridges);
     virtual void addBridgesBetweenGraphs(Graph *left, Graph *right, std::vector<Edge<std::string>*>& bridges) = 0;
+    virtual std::string getName() = 0;
 };
 
 
