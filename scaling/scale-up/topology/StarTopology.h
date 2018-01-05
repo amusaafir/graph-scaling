@@ -10,7 +10,7 @@
 class StarTopology : public Topology {
 public:
     StarTopology(Bridge* bridge);
-    std::vector<Edge<std::string>*> getBridgeEdges(std::vector<Graph*> samples);
+    std::vector<Edge<std::string>> getBridgeEdges(std::vector<Graph*> samples);
     std::string getName();
 };
 

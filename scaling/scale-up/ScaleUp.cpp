@@ -4,6 +4,7 @@
 
 #include "ScaleUp.h"
 #include "IdentifierTracker.h"
+#include "../../io/WriteScaledUpGraph.h"
 
 ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, ScaleUpSamplesInfo* scaleUpSamplesInfo) {
     this->graph = graph;
@@ -18,11 +19,13 @@ void ScaleUp::executeScaleUp() {
 
     std::cout << "Length sample size: " << samples.size() << std::endl;
 
-    std::vector<Edge<std::string>*> bridges = scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples);
+    std::vector<Edge<std::string>> bridges = scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples);
 
-
+    WriteScaledUpGraph* writeScaledUpGraph = new WriteScaledUpGraph("/home/aj/Documents/output_scaling", samples, bridges);
+    writeScaledUpGraph->writeToFile(scaleUpSamplesInfo);
 
     delete(scaleUpSamplesInfo);
+    delete(writeScaledUpGraph);
 }
 
 void ScaleUp::printScaleUpSetup() {

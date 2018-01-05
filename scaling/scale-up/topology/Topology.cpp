@@ -7,3 +7,7 @@
 Topology::Topology(Bridge* bridge) {
     this->bridge = bridge;
 }
+
+Bridge* Topology::getBridge() {
+    return this->bridge;
+}

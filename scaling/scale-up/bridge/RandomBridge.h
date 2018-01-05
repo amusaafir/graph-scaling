@@ -14,7 +14,7 @@ private:
 
 public:
     RandomBridge(int numberOfInterconnections, bool forceUndirectedEdges);
-    void addBridgesBetweenGraphs(Graph *left, Graph *right, std::vector<Edge<std::string>*>& bridges);
+    void addBridgesBetweenGraphs(Graph *left, Graph *right, std::vector<Edge<std::string>>& bridges);
     std::string getName();
 };
 

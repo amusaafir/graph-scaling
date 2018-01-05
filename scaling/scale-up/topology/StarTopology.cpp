@@ -7,10 +7,14 @@
 StarTopology::StarTopology(Bridge* bridge)
         : Topology(bridge) {}
 
-std::vector<Edge<std::string>*> StarTopology::getBridgeEdges(std::vector<Graph*> samples) {
+std::vector<Edge<std::string>> StarTopology::getBridgeEdges(std::vector<Graph*> samples) {
+    if (samples.size() <=1) {
+        std::cerr << "There are only " << samples.size() << " sampled graphs." << std::endl;
+    }
+
     Graph* coreGraph = samples[0]; // Use the first graph sample as the core of the star
 
-    std::vector<Edge<std::string>*> bridges;
+    std::vector<Edge<std::string>> bridges;
 
     for (int i = 1; i < samples.size(); i++) {
         bridge->addBridgesBetweenGraphs(samples[i], coreGraph, bridges);
