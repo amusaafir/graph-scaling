@@ -14,6 +14,7 @@ protected:
 public:
     Topology(Bridge* bridge);
     virtual std::vector<Edge<std::string>*> getBridgeEdges(std::vector<Graph*> samples) = 0;
+    virtual std::string getName() = 0;
 };
 
 #endif //GRAPH_SCALING_TOOL_TOPOLOGY_H
