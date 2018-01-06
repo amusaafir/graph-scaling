@@ -10,7 +10,7 @@ std::vector<Edge<std::string>> RingTopology::getBridgeEdges(std::vector<Graph*> 
     std::vector<Edge<std::string>> bridges;
 
     for (int i = 0; i < samples.size() - 1; i++) {
-        bridge->addBridgesBetweenGraphs(samples[i], samples[i+1], bridges);
+        bridge->addBridgesBetweenGraphs(samples[i], samples[i + 1], bridges);
     }
 
     // Connect the last sample with the first sample
