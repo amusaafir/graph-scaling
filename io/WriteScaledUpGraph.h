@@ -8,6 +8,9 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <math.h>
+#include <iomanip>
+#include <sstream>
 #include "../graph/Edge.h"
 #include "../graph/Graph.h"
 #include "../scaling/scale-up/ScaleUpSamplesInfo.h"
@@ -24,6 +27,8 @@ private:
 public:
     WriteScaledUpGraph(std::string outputFolderPath, std::vector<Graph*> samples, std::vector<Edge<std::string>> bridges);
     void writeToFile(ScaleUpSamplesInfo* scaleUpSamplesInfo);
+
+    std::string createFilename(ScaleUpSamplesInfo *scaleUpSamplesInfo) const;
 };
 
 

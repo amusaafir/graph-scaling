@@ -18,12 +18,12 @@ int main() {
     std::cout << logo << version << std::endl;
 
     GraphLoader* graphLoader = new GraphLoader();
-    Graph* graph = graphLoader->loadGraph("/home/aj/Documents/graph_datasets/facebook_combined.txt");
+    Graph* graph = graphLoader->loadGraph("/home/aj/Documents/graph_datasets/graph.txt");
 
     delete(graphLoader);
 
     Scaling* scaling = new Scaling(graph);
-    scaling->scaleUp(new ScaleUpSamplesInfo(new StarTopology(new RandomBridge(100, false)), 3.7, 0.5));
+    scaling->scaleUp(new ScaleUpSamplesInfo(new StarTopology(new RandomBridge(2, false)), 3, 0.5));
     //scaling->scaleDown(0.5);
     delete(scaling);
 

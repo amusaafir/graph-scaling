@@ -5,7 +5,7 @@
 #include "IdentifierTracker.h"
 
 IdentifierTracker::IdentifierTracker() {
-    this->currentGraphSampleIndex = 1;
+    this->currentGraphSampleIndex = 0;
 }
 
 std::string IdentifierTracker::createNewIdentifier() {

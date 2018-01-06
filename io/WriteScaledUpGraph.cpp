@@ -11,12 +11,7 @@ WriteScaledUpGraph::WriteScaledUpGraph(std::string outputFolderPath, std::vector
 }
 
 void WriteScaledUpGraph::writeToFile(ScaleUpSamplesInfo* scaleUpSamplesInfo) {
-    std::string filename = "expanded_graph_"
-                           + std::to_string(scaleUpSamplesInfo->getSamplingFraction()) + "_"
-                           + std::to_string(scaleUpSamplesInfo->getScalingFactor()) + "_"
-                           + scaleUpSamplesInfo->getTopology()->getName() + "_"
-                           + scaleUpSamplesInfo->getTopology()->getBridge()->getName();
-
+    std::string filename = createFilename(scaleUpSamplesInfo);
 
     std::cout << "Writing output file to " << outputFolderPath + "/" + filename + ".txt" << std::endl;
 
@@ -31,9 +26,22 @@ void WriteScaledUpGraph::writeToFile(ScaleUpSamplesInfo* scaleUpSamplesInfo) {
     std::cout << "Finished writing output file." << std::endl;
 }
 
+std::string WriteScaledUpGraph::createFilename(ScaleUpSamplesInfo *scaleUpSamplesInfo) const {
+    std::stringstream samplingFractionStream, scalingFactorStream;
+    samplingFractionStream << std::fixed << std::setprecision(2) << scaleUpSamplesInfo->getSamplingFraction();
+    scalingFactorStream << std::fixed << std::setprecision(2) << scaleUpSamplesInfo->getScalingFactor();
+
+    std::__cxx11::string filename = "expanded_graph_"
+                                    + samplingFractionStream.str() + "_"
+                                    + scalingFactorStream.str() + "_"
+                                    + scaleUpSamplesInfo->getTopology()->getName() + "_"
+                                    + scaleUpSamplesInfo->getTopology()->getBridge()->getName();
+    return filename;
+}
+
 void WriteScaledUpGraph::writeEdgesFromBridges(std::ofstream &outputFile) const {
     for (int i = 0; i < bridges.size(); i++) {
-            Edge<std::__cxx11::string> edge = bridges[i];
+            Edge<std::string> edge = bridges[i];
             outputFile << edge.getSource() + ", " + edge.getTarget() + "\n";
         }
 }
