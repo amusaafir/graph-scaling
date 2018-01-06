@@ -8,17 +8,17 @@
 RandomBridge::RandomBridge(int numberOfInterconnections, bool addDirectedBridges)
         : Bridge(numberOfInterconnections, addDirectedBridges) {}
 
-void RandomBridge::addBridgesBetweenGraphs(Graph *left, Graph *right, std::vector<Edge<std::string>>& bridges) {
+void RandomBridge::addBridgesBetweenGraphs(Graph *sourceGraph, Graph *targetGraph, std::vector<Edge<std::string>>& bridges) {
     for (int i = 0; i < numberOfInterconnections; i++) {
-        int vertexSource = getRandomVertexFromGraph(left);
-        int vertexTarget = getRandomVertexFromGraph(right);
+        int vertexSource = getRandomVertexFromGraph(sourceGraph);
+        int vertexTarget = getRandomVertexFromGraph(targetGraph);
 
-        bridges.push_back(Edge<std::string>(std::to_string(vertexSource) + left->getIdentifier(),
-                                                std::to_string(vertexTarget) + right->getIdentifier()));
+        bridges.push_back(Edge<std::string>(std::to_string(vertexSource) + sourceGraph->getIdentifier(),
+                                                std::to_string(vertexTarget) + targetGraph->getIdentifier()));
 
         if (!addDirectedBridges) {
-            bridges.push_back(Edge<std::string>(std::to_string(vertexTarget) + right->getIdentifier(),
-                                                    std::to_string(vertexSource) + left->getIdentifier()                                                    ));
+            bridges.push_back(Edge<std::string>(std::to_string(vertexTarget) + targetGraph->getIdentifier(),
+                                                    std::to_string(vertexSource) + sourceGraph->getIdentifier()                                                    ));
         }
     }
 }
