@@ -20,5 +20,5 @@ std::vector<Edge<std::string>> StarTopology::getBridgeEdges(std::vector<Graph*> 
 }
 
 std::string StarTopology::getName() {
-    return "StarTopology";
+    return "Star";
 }

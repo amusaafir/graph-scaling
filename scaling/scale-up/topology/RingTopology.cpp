@@ -20,5 +20,5 @@ std::vector<Edge<std::string>> RingTopology::getBridgeEdges(std::vector<Graph*> 
 }
 
 std::string RingTopology::getName() {
-    return "RingTopology";
+    return "Ring";
 }

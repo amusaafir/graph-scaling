@@ -17,5 +17,5 @@ std::vector<Edge<std::string>> ChainTopology::getBridgeEdges(std::vector<Graph*>
 }
 
 std::string ChainTopology::getName() {
-    return "ChainTopology";
+    return "Chain";
 }
