@@ -6,10 +6,11 @@
 #include "IdentifierTracker.h"
 #include "../../io/WriteScaledUpGraph.h"
 
-ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, ScaleUpSamplesInfo* scaleUpSamplesInfo) {
+ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, ScaleUpSamplesInfo* scaleUpSamplesInfo, std::string outputFolder) {
     this->graph = graph;
     this->sampling = sampling;
     this->scaleUpSamplesInfo = scaleUpSamplesInfo;
+    this->outputFolder = outputFolder;
 }
 
 void ScaleUp::executeScaleUp() {
@@ -21,10 +22,9 @@ void ScaleUp::executeScaleUp() {
 
     std::vector<Edge<std::string>> bridges = scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples);
 
-    WriteScaledUpGraph* writeScaledUpGraph = new WriteScaledUpGraph("/home/aj/Documents/output_scaling", samples, bridges);
+    WriteScaledUpGraph* writeScaledUpGraph = new WriteScaledUpGraph(outputFolder, samples, bridges);
     writeScaledUpGraph->writeToFile(scaleUpSamplesInfo);
 
-    delete(scaleUpSamplesInfo);
     delete(writeScaledUpGraph);
 }
 
@@ -42,26 +42,26 @@ void ScaleUp::printScaleUpSetup() {
 }
 
 std::vector<Graph*> ScaleUp::createDistinctSamples() {
-    IdentifierTracker* identifierTracker = new IdentifierTracker();
     std::vector<Graph*> samples;
 
     for (int i = 0; i < scaleUpSamplesInfo->getAmountOfSamples(); i++) {
         std::cout << "\n(" << i + 1 << "/" << scaleUpSamplesInfo->getAmountOfSamples()  << ")" << std::endl;
 
         if (shouldSampleRemainder(scaleUpSamplesInfo, i)) {
-            createSample(identifierTracker, samples, scaleUpSamplesInfo->getRemainder());
+            createSample(samples, scaleUpSamplesInfo->getRemainder());
             break;
         }
 
-        createSample(identifierTracker, samples, scaleUpSamplesInfo->getSamplingFraction());
+        createSample(samples, scaleUpSamplesInfo->getSamplingFraction());
     }
 
     return samples;
 }
 
-void ScaleUp::createSample(IdentifierTracker *identifierTracker, std::vector<Graph*> &samples, float samplingFraction) {
+void ScaleUp::createSample(std::vector<Graph*> &samples, float samplingFraction) {
     Graph* sampledGraph = sampling->sample(samplingFraction);
-    sampledGraph->setIdentifier(identifierTracker->createNewIdentifier());
+    IdentifierTracker identifierTracker;
+    sampledGraph->setIdentifier(identifierTracker.createNewIdentifier());
     samples.push_back(sampledGraph);
 }
 

@@ -9,6 +9,7 @@
 #include "Topology.h"
 
 class RingTopology : public Topology {
+public:
     RingTopology(Bridge* bridge);
     std::vector<Edge<std::string>> getBridgeEdges(std::vector<Graph*> samples);
     std::string getName();

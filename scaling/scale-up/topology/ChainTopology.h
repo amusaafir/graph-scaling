@@ -9,6 +9,7 @@
 #include "Topology.h"
 
 class ChainTopology : public Topology {
+public:
     ChainTopology(Bridge* bridge);
     std::vector<Edge<std::string>> getBridgeEdges(std::vector<Graph*> samples);
     std::string getName();

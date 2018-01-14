@@ -10,9 +10,11 @@ Scaling::Scaling(Graph* graph) {
     this->graph = graph;
 }
 
-void Scaling::scaleUp(ScaleUpSamplesInfo* scaleUpSamplesInfo) {
-    ScaleUp* scaleUp = new ScaleUp(graph, new TIES(graph), scaleUpSamplesInfo);
+void Scaling::scaleUp(ScaleUpSamplesInfo* scaleUpSamplesInfo, std::string outputFolder) {
+    ScaleUp* scaleUp = new ScaleUp(graph, new TIES(graph), scaleUpSamplesInfo, outputFolder);
     scaleUp->executeScaleUp();
+
+    delete(scaleUp);
 }
 
 void Scaling::scaleDown(float samplingFraction) {

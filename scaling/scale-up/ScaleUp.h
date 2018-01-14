@@ -16,6 +16,7 @@ private:
     Graph* graph;
     Sampling* sampling;
     ScaleUpSamplesInfo* scaleUpSamplesInfo;
+    std::string outputFolder;
 
     bool shouldSampleRemainder(ScaleUpSamplesInfo *scaleUpSamplesInfo, int currentLoopIteration);
 
@@ -23,10 +24,10 @@ private:
 
     std::vector<Graph*> createDistinctSamples();
 
-    void createSample(IdentifierTracker *identifierTracker, std::vector<Graph*> &samples, float samplingFraction);
+    void createSample(std::vector<Graph*> &samples, float samplingFraction);
 
 public:
-    ScaleUp(Graph* graph, Sampling* sampling, ScaleUpSamplesInfo* scaleUpSamplesInfo);
+    ScaleUp(Graph* graph, Sampling* sampling, ScaleUpSamplesInfo* scaleUpSamplesInfo, std::string outputFolder);
 
     void executeScaleUp();
 };
