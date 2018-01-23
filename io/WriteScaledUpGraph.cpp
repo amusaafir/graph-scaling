@@ -10,7 +10,7 @@ WriteScaledUpGraph::WriteScaledUpGraph(std::string outputFolderPath, std::vector
     this->bridges = bridges;
 }
 
-void WriteScaledUpGraph::writeToFile(ScaleUpSamplesInfo* scaleUpSamplesInfo) {
+void WriteScaledUpGraph::writeToFile(ScalingUpConfig* scaleUpSamplesInfo) {
     std::string filename = createFilename(scaleUpSamplesInfo);
 
     std::cout << "Writing output file to " << outputFolderPath + "/" + filename + ".txt" << std::endl;
@@ -26,7 +26,7 @@ void WriteScaledUpGraph::writeToFile(ScaleUpSamplesInfo* scaleUpSamplesInfo) {
     std::cout << "Finished writing output file." << std::endl;
 }
 
-std::string WriteScaledUpGraph::createFilename(ScaleUpSamplesInfo *scaleUpSamplesInfo) const {
+std::string WriteScaledUpGraph::createFilename(ScalingUpConfig *scaleUpSamplesInfo) const {
     std::stringstream samplingFractionStream, scalingFactorStream;
     samplingFractionStream << std::fixed << std::setprecision(2) << scaleUpSamplesInfo->getSamplingFraction();
     scalingFactorStream << std::fixed << std::setprecision(2) << scaleUpSamplesInfo->getScalingFactor();

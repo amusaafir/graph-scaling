@@ -9,7 +9,7 @@
 #include "topology/Topology.h"
 #include "bridge/Bridge.h"
 
-class ScaleUpSamplesInfo {
+class ScalingUpConfig {
 private:
     Topology* topology;
     int amountOfSamples;
@@ -20,7 +20,7 @@ private:
     void determineAdditionalSampling();
 
 public:
-    ScaleUpSamplesInfo(Topology* topology, float scalingFactor, float samplingFraction);
+    ScalingUpConfig(float scalingFactor, float samplingFraction, Topology* topology);
 
     bool hasSamplingRemainder() const;
 

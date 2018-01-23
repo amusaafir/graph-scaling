@@ -6,7 +6,7 @@
 #include "IdentifierTracker.h"
 #include "../../io/WriteScaledUpGraph.h"
 
-ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, ScaleUpSamplesInfo* scaleUpSamplesInfo, std::string outputFolder) {
+ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder) {
     this->graph = graph;
     this->sampling = sampling;
     this->scaleUpSamplesInfo = scaleUpSamplesInfo;
@@ -65,7 +65,7 @@ void ScaleUp::createSample(std::vector<Graph*> &samples, float samplingFraction)
     samples.push_back(sampledGraph);
 }
 
-bool ScaleUp::shouldSampleRemainder(ScaleUpSamplesInfo *scaleUpSamplesInfo, int currentLoopIteration) {
+bool ScaleUp::shouldSampleRemainder(ScalingUpConfig *scaleUpSamplesInfo, int currentLoopIteration) {
     bool isLastSamplingIteration = currentLoopIteration == (scaleUpSamplesInfo->getAmountOfSamples() - 1);
 
     return isLastSamplingIteration && scaleUpSamplesInfo->hasSamplingRemainder();

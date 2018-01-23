@@ -12,8 +12,13 @@
 #include "../graph/Graph.h"
 
 class GraphLoader {
+private:
+    Graph* graph;
+
 public:
     Graph* loadGraph(std::string path);
+
+    ~GraphLoader();
 
     void readLines(Graph *graph, std::ifstream &infile) const;
 };

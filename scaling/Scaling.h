@@ -16,8 +16,8 @@ private:
 
 public:
     Scaling(Graph* graph);
-    void scaleUp(ScaleUpSamplesInfo* scaleUpSamplesInfo, std::string outputFolder);
-    void scaleDown(float samplingFraction);
+    void scaleUp(ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder);
+    void scaleDown(float samplingFraction, std::string outputFolder);
 };
 
 

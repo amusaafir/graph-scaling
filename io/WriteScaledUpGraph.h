@@ -13,7 +13,7 @@
 #include <sstream>
 #include "../graph/Edge.h"
 #include "../graph/Graph.h"
-#include "../scaling/scale-up/ScaleUpSamplesInfo.h"
+#include "../scaling/scale-up/ScalingUpConfig.h"
 
 class WriteScaledUpGraph {
 private:
@@ -26,9 +26,9 @@ private:
 
 public:
     WriteScaledUpGraph(std::string outputFolderPath, std::vector<Graph*> samples, std::vector<Edge<std::string>> bridges);
-    void writeToFile(ScaleUpSamplesInfo* scaleUpSamplesInfo);
+    void writeToFile(ScalingUpConfig* scaleUpSamplesInfo);
 
-    std::string createFilename(ScaleUpSamplesInfo *scaleUpSamplesInfo) const;
+    std::string createFilename(ScalingUpConfig *scaleUpSamplesInfo) const;
 };
 
 

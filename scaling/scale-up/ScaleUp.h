@@ -6,7 +6,7 @@
 #define GRAPH_SCALING_TOOL_SCALEUP_H
 
 #include <math.h>
-#include "ScaleUpSamplesInfo.h"
+#include "ScalingUpConfig.h"
 #include "../../graph/Graph.h"
 #include "../scale-down/Sampling.h"
 #include "IdentifierTracker.h"
@@ -15,10 +15,10 @@ class ScaleUp {
 private:
     Graph* graph;
     Sampling* sampling;
-    ScaleUpSamplesInfo* scaleUpSamplesInfo;
+    ScalingUpConfig* scaleUpSamplesInfo;
     std::string outputFolder;
 
-    bool shouldSampleRemainder(ScaleUpSamplesInfo *scaleUpSamplesInfo, int currentLoopIteration);
+    bool shouldSampleRemainder(ScalingUpConfig *scaleUpSamplesInfo, int currentLoopIteration);
 
     void printScaleUpSetup();
 
@@ -27,7 +27,7 @@ private:
     void createSample(std::vector<Graph*> &samples, float samplingFraction);
 
 public:
-    ScaleUp(Graph* graph, Sampling* sampling, ScaleUpSamplesInfo* scaleUpSamplesInfo, std::string outputFolder);
+    ScaleUp(Graph* graph, Sampling* sampling, ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder);
 
     void executeScaleUp();
 };

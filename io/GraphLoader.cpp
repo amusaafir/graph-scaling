@@ -7,7 +7,7 @@
 Graph* GraphLoader::loadGraph(std::string path) {
     std::cout << "\nLoad graph: " << path << std::endl;
 
-    Graph* graph = new Graph();
+    graph = new Graph();
     std::ifstream infile(path);
     readLines(graph, infile);
 
@@ -31,4 +31,8 @@ void GraphLoader::readLines(Graph *graph, std::ifstream &infile) const {
         graph->addVertex(target);
         graph->addEdge(source, target);
     }
+}
+
+GraphLoader::~GraphLoader() {
+    delete(graph);
 }
