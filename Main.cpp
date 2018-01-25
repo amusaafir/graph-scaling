@@ -39,6 +39,7 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+
 void scaleUp(GraphLoader *graphLoader, UserInput *userInput) {
     Graph* graph = graphLoader->loadGraph(userInput->getInputGraphPath());
     Scaling* scaling = new Scaling(graph);

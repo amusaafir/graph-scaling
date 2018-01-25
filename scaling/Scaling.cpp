@@ -12,7 +12,7 @@ Scaling::Scaling(Graph* graph) {
 
 void Scaling::scaleUp(ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder) {
     ScaleUp* scaleUp = new ScaleUp(graph, new TIES(graph), scaleUpSamplesInfo, outputFolder);
-    scaleUp->executeScaleUp();
+    scaleUp->run();
 
     delete(scaleUp);
 }

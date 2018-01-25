@@ -10,10 +10,10 @@
  */
 Graph* TIES::sample(float fraction) {
     std::unordered_set<int> sampledVertices;
-    executeEdgeBasedNodeSamplingStep(sampledVertices, fraction);
+    edgeBasedNodeSamplingStep(sampledVertices, fraction);
 
     std::vector<Edge<int>> sampledEdges;
-    executeInductionStep(sampledVertices, sampledEdges);
+    inductionStep(sampledVertices, sampledEdges);
 
     Graph* sampledGraph = new Graph();
     sampledGraph->setVertices(sampledVertices);
@@ -28,7 +28,7 @@ Graph* TIES::sample(float fraction) {
  * @param sampledVertices - set to hold the sampled vertices, which are collected in this function.
  * @param fraction - from the total amount of vertices.
  */
-void TIES::executeEdgeBasedNodeSamplingStep(std::unordered_set<int> &sampledVertices, float fraction) {
+void TIES::edgeBasedNodeSamplingStep(std::unordered_set<int> &sampledVertices, float fraction) {
     std::cout << "Performing Edge-based Node Sampling step." << std::endl;
 
     int requiredNumberOfVertices = getNumberOfVerticesFromFraction(fraction);
@@ -50,14 +50,14 @@ void TIES::executeEdgeBasedNodeSamplingStep(std::unordered_set<int> &sampledVert
  * @param sampledEdges - vector to hold the sampled edges, which are collected in this function.
  * @return
  */
-void TIES::executeInductionStep(std::unordered_set<int> &sampledVertices, std::vector<Edge<int>>& sampledEdges) {
+void TIES::inductionStep(std::unordered_set<int> &sampledVertices, std::vector<Edge<int>> &sampledEdges) {
     std::cout << "Performing total induction step." << std::endl;
 
     for (int i = 0; i < graph->getEdges().size(); i++) {
         Edge<int> edge = graph->getEdges()[i];
 
-        if (isVertexInSampledVertices(edge.getSource(), sampledVertices)
-            && isVertexInSampledVertices(edge.getTarget(), sampledVertices)) {
+        if (isVertexSampled(edge.getSource(), sampledVertices)
+            && isVertexSampled(edge.getTarget(), sampledVertices)) {
             sampledEdges.push_back(edge);
         }
     }
@@ -71,7 +71,7 @@ void TIES::executeInductionStep(std::unordered_set<int> &sampledVertices, std::v
  * @param sampledVertices - set to hold the sampled vertices, collected from the Edge-based node sampling function.
  * @return
  */
-bool TIES::isVertexInSampledVertices(int vertex, std::unordered_set<int> &sampledVertices) {
+bool TIES::isVertexSampled(int vertex, std::unordered_set<int> &sampledVertices) {
     return sampledVertices.find(vertex) != sampledVertices.end();
 }
 

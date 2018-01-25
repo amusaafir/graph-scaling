@@ -29,7 +29,7 @@ private:
 public:
     ScaleUp(Graph* graph, Sampling* sampling, ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder);
 
-    void executeScaleUp();
+    void run();
 };
 
 

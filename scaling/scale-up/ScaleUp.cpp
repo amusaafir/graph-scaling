@@ -13,7 +13,7 @@ ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, ScalingUpConfig* scaleUpSampl
     this->outputFolder = outputFolder;
 }
 
-void ScaleUp::executeScaleUp() {
+void ScaleUp::run() {
     printScaleUpSetup();
 
     std::vector<Graph*> samples = createDistinctSamples();
