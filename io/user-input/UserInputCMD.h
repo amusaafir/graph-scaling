@@ -14,7 +14,6 @@
 class UserInputCMD : public UserInput {
 private:
     std::map<char, std::string> inputArguments;
-    bool isScaleUp = false;
     void insertArgumentValues(int argc, char* argv[]);
 
 public:

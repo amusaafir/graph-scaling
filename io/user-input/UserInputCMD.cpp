@@ -66,7 +66,7 @@ void UserInputCMD::insertArgumentValues(int argc, char* argv[]) {
     int opt;
 
     while ((opt = getopt (argc, argv, "i:o:s:u:t:b:d:")) != -1) {
-        if (!inputArguments.count(opt)) {
+        if (!inputArguments.count(opt)) { // TODO: init map and check if it exists
             inputArguments[opt] = optarg;
         } else {
             char option = opt;
