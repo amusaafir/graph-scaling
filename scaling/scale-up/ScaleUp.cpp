@@ -18,8 +18,6 @@ void ScaleUp::executeScaleUp() {
 
     std::vector<Graph*> samples = createDistinctSamples();
 
-    std::cout << "Length sample size: " << samples.size() << std::endl;
-
     std::vector<Edge<std::string>> bridges = scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples);
 
     WriteScaledUpGraph* writeScaledUpGraph = new WriteScaledUpGraph(outputFolder, samples, bridges);

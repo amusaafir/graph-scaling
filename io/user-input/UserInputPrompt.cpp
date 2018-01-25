@@ -1,55 +1,35 @@
 //
-// Created by Ahmed on 22-1-18.
+// Created by Ahmed on 25-1-18.
 //
 
-#include "UserInput.h"
-#include "../scaling/scale-up/bridge/RandomBridge.h"
-#include "../scaling/scale-up/topology/StarTopology.h"
-#include "../scaling/scale-up/topology/ChainTopology.h"
-#include "../scaling/scale-up/topology/RingTopology.h"
-#include "../scaling/scale-up/topology/FullyConnectedTopology.h"
+#include "UserInputPrompt.h"
 
-UserInput::UserInput() {
+UserInputPrompt::UserInputPrompt() {
+
 }
 
-UserInput::~UserInput() {
-    delete(topologies['s']);
-    delete(topologies['c']);
-    delete(topologies['r']);
-    delete(topologies['f']);
-
-    delete(bridge);
-}
-
-void UserInput::initTopologies() {
-    topologies['s'] = new StarTopology(bridge);
-    topologies['c'] = new ChainTopology(bridge);
-    topologies['r'] = new RingTopology(bridge);
-    topologies['f'] = new FullyConnectedTopology(bridge);
-}
-
-int UserInput::getScalingType() {
+int UserInputPrompt::getScalingType() {
     std::cout << "[1] - Scale-up" << std::endl;
     std::cout << "[2] - Scale-down" << std::endl;
 
-    int selection;
     std::cout << "Select option:" << std::endl;
+    int selection;
     std::cin >> selection;
 
     return selection;
 }
 
-std::string UserInput::getInputGraphPath() {
-    std::cout << "Note: the input and output paths may not contain any white space (newlines/spaces)." << std::endl;
+std::string UserInputPrompt::getInputGraphPath() {
+    std::cout << "Note: the user-input and output paths may not contain any white space (newlines/spaces)." << std::endl;
 
+    std::cout << "Enter path user-input graph:" << std::endl;
     std::string specInputGraphPath;
-    std::cout << "Enter path input graph:" << std::endl;
     std::cin >> specInputGraphPath;
 
     return specInputGraphPath;
 }
 
-std::string UserInput::getOutputGraphPath() {
+std::string UserInputPrompt::getOutputGraphPath() {
     std::string specOutputFolder;
     std::cout << "Enter path output folder:" << std::endl;
     std::cin >> specOutputFolder;
@@ -58,16 +38,16 @@ std::string UserInput::getOutputGraphPath() {
 }
 
 // TODO
-Bridge* UserInput::getBridge() {
+Bridge* UserInputPrompt::getBridge() {
     int numberInterconnections = getNumberOfInterconnections();
     bool directedBridges = addDirectedBridges();
 
     return new RandomBridge(numberInterconnections, directedBridges);
 }
 
-bool UserInput::addDirectedBridges() {
-    char addDirectedBridges;
+bool UserInputPrompt::addDirectedBridges() {
     std::cout << "Add directed bridges (y/n)?" << std::endl;
+    char addDirectedBridges;
     std::cin >> addDirectedBridges;
 
     std::cout<<(addDirectedBridges == 'y' )<< std::endl;
@@ -75,38 +55,37 @@ bool UserInput::addDirectedBridges() {
     return addDirectedBridges == 'y';
 }
 
-int UserInput::getNumberOfInterconnections() {
+int UserInputPrompt::getNumberOfInterconnections() {
     std::cout << "Number of interconnections between each graph:" << std::endl;
-
     int numberOfInterconnections;
     std::cin >> numberOfInterconnections;
 
     return numberOfInterconnections;
 }
 
-Topology* UserInput::getTopology() {
+Topology* UserInputPrompt::getTopology() {
     bridge = getBridge();
 
     initTopologies();
 
-    char specTopology;
     std::cout << "Topology: [s]tar; [c]hain; [r]ing; [f]ullyconnected:" << std::endl;
+    char specTopology;
     std::cin >> specTopology;
 
     return topologies[specTopology];
 }
 
-float UserInput::getSamplingFraction() {
-    float samplingFraction;
+float UserInputPrompt::getSamplingFraction() {
     std::cout << "Sample size per graph: " << std::endl;
+    float samplingFraction;
     std::cin >> samplingFraction;
 
     return samplingFraction;
 }
 
-float UserInput::getScalingFactor() {
-    float scalingFactor;
+float UserInputPrompt::getScalingFactor() {
     std::cout << "Scaling factor: " << std::endl;
+    float scalingFactor;
     std::cin >> scalingFactor;
 
     return scalingFactor;

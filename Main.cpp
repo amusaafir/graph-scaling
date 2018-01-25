@@ -2,7 +2,9 @@
 #include <map>
 #include "scaling/Scaling.h"
 #include "io/GraphLoader.h"
-#include "io/UserInput.h"
+#include "io/user-input/UserInput.h"
+#include "io/user-input/UserInputPrompt.h"
+#include "io/user-input/UserInputCMD.h"
 
 std::string logo = "  ____                        _        ____                        \n"
         " / ___|  __ _ _ __ ___  _ __ | | ___  / ___| _ __  _ __ __ _ _   _ \n"
@@ -18,11 +20,13 @@ void scaleUp(GraphLoader *graphLoader, UserInput *userInput);
 
 void scaleDown(UserInput *userInput);
 
-int main() {
+UserInput*  getUserInput(int argc, char* argv[]);
+
+int main(int argc, char* argv[]) {
     std::cout << logo << version << std::endl;
 
     GraphLoader* graphLoader = new GraphLoader();
-    UserInput* userInput = new UserInput();
+    UserInput* userInput = getUserInput(argc, argv);
 
     if (userInput->getScalingType()) {
         scaleUp(graphLoader, userInput);
@@ -35,7 +39,6 @@ int main() {
 
     return 0;
 }
-
 void scaleUp(GraphLoader *graphLoader, UserInput *userInput) {
     Graph* graph = graphLoader->loadGraph(userInput->getInputGraphPath());
     Scaling* scaling = new Scaling(graph);
@@ -52,4 +55,12 @@ void scaleDown(UserInput *userInput) {
     std::string inputPathGraph = userInput->getInputGraphPath();
     std::string outputPathGraph = userInput->getOutputGraphPath();
     float samplingFraction = userInput->getSamplingFraction();
+}
+
+UserInput* getUserInput(int argc, char* argv[]) {
+    if (argc > 1) {
+        return new UserInputCMD(argc, argv);
+    }
+
+    return new UserInputPrompt();
 }
