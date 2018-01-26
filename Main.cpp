@@ -2,7 +2,6 @@
 #include <map>
 #include "scaling/Scaling.h"
 #include "io/GraphLoader.h"
-#include "io/user-input/UserInput.h"
 #include "io/user-input/UserInputPrompt.h"
 #include "io/user-input/UserInputCMD.h"
 
@@ -16,23 +15,22 @@ std::string logo = "  ____                        _        ____                 
 std::string version = "v1.0";
 
 
-void scaleUp(GraphLoader *graphLoader, UserInput *userInput);
+void scaleUp(Graph *graph, UserInput *userInput);
 
-void scaleDown(UserInput *userInput);
+void scaleDown(Graph* graph, UserInput *userInput);
 
 UserInput*  getUserInput(int argc, char* argv[]);
+
+void scaleGraph(UserInput *userInput, Graph *graph);
 
 int main(int argc, char* argv[]) {
     std::cout << logo << version << std::endl;
 
-    GraphLoader* graphLoader = new GraphLoader();
     UserInput* userInput = getUserInput(argc, argv);
+    GraphLoader* graphLoader = new GraphLoader();
+    Graph* graph = graphLoader->loadGraph(userInput->getInputGraphPath());
 
-    if (userInput->getScalingType()) {
-        scaleUp(graphLoader, userInput);
-    } else {
-        scaleDown(userInput);
-    }
+    scaleGraph(userInput, graph);
 
     delete(userInput);
     delete(graphLoader);
@@ -40,22 +38,16 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void scaleUp(GraphLoader *graphLoader, UserInput *userInput) {
-    Graph* graph = graphLoader->loadGraph(userInput->getInputGraphPath());
-    Scaling* scaling = new Scaling(graph);
-    ScalingUpConfig* scaleUpSamplesInfo = new ScalingUpConfig(userInput->getScalingFactor(),
-                                                              userInput->getSamplingFraction(),
-                                                              userInput->getTopology());
-    scaling->scaleUp(scaleUpSamplesInfo, userInput->getOutputGraphPath());
+void scaleGraph(UserInput* userInput, Graph *graph) {
+    Scaling* scaling = new Scaling(graph, userInput);
 
-    delete(scaleUpSamplesInfo);
+    if (userInput->getScalingType() == 1) {
+        scaling->scaleUp();
+    } else {
+        scaling->scaleDown();
+    }
+
     delete(scaling);
-}
-
-void scaleDown(UserInput *userInput) {
-    std::string inputPathGraph = userInput->getInputGraphPath();
-    std::string outputPathGraph = userInput->getOutputGraphPath();
-    float samplingFraction = userInput->getSamplingFraction();
 }
 
 UserInput* getUserInput(int argc, char* argv[]) {

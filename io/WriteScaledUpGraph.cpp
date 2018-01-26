@@ -31,7 +31,7 @@ std::string WriteScaledUpGraph::createFilename(ScalingUpConfig *scaleUpSamplesIn
     samplingFractionStream << std::fixed << std::setprecision(2) << scaleUpSamplesInfo->getSamplingFraction();
     scalingFactorStream << std::fixed << std::setprecision(2) << scaleUpSamplesInfo->getScalingFactor();
 
-    std::__cxx11::string filename = "expanded_graph_"
+    std::string filename = "expanded_graph_"
                                     + samplingFractionStream.str() + "_"
                                     + scalingFactorStream.str() + "_"
                                     + scaleUpSamplesInfo->getTopology()->getName() + "_"
@@ -43,7 +43,7 @@ void WriteScaledUpGraph::writeEdgesFromBridges(std::ofstream &outputFile) const 
     for (int i = 0; i < bridges.size(); i++) {
             Edge<std::string> edge = bridges[i];
             outputFile << edge.getSource() + ", " + edge.getTarget() + "\n";
-        }
+    }
 }
 
 void WriteScaledUpGraph::writeEdgesFromSamples(std::ofstream &outputFile) const {

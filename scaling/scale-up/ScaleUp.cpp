@@ -41,25 +41,25 @@ void ScaleUp::printScaleUpSetup() {
 
 std::vector<Graph*> ScaleUp::createDistinctSamples() {
     std::vector<Graph*> samples;
+    IdentifierTracker identifierTracker;
 
     for (int i = 0; i < scaleUpSamplesInfo->getAmountOfSamples(); i++) {
         std::cout << "\n(" << i + 1 << "/" << scaleUpSamplesInfo->getAmountOfSamples()  << ")" << std::endl;
 
         if (shouldSampleRemainder(scaleUpSamplesInfo, i)) {
-            createSample(samples, scaleUpSamplesInfo->getRemainder());
+            createSample(samples, scaleUpSamplesInfo->getRemainder(), identifierTracker.createNewIdentifier());
             break;
         }
 
-        createSample(samples, scaleUpSamplesInfo->getSamplingFraction());
+        createSample(samples, scaleUpSamplesInfo->getSamplingFraction(), identifierTracker.createNewIdentifier());
     }
 
     return samples;
 }
 
-void ScaleUp::createSample(std::vector<Graph*> &samples, float samplingFraction) {
+void ScaleUp::createSample(std::vector<Graph*> &samples, float samplingFraction, std::string identifier) {
     Graph* sampledGraph = sampling->sample(samplingFraction);
-    IdentifierTracker identifierTracker;
-    sampledGraph->setIdentifier(identifierTracker.createNewIdentifier());
+    sampledGraph->setIdentifier(identifier);
     samples.push_back(sampledGraph);
 }
 

@@ -3,23 +3,27 @@
 //
 
 #include "Scaling.h"
-#include "scale-up/topology/StarTopology.h"
-#include "scale-up/bridge/RandomBridge.h"
 
-Scaling::Scaling(Graph* graph) {
+Scaling::Scaling(Graph* graph, UserInput* userInput) {
     this->graph = graph;
+    this->userInput = userInput;
 }
 
-void Scaling::scaleUp(ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder) {
-    ScaleUp* scaleUp = new ScaleUp(graph, new TIES(graph), scaleUpSamplesInfo, outputFolder);
+void Scaling::scaleUp() {
+    ScalingUpConfig* scaleUpSamplesInfo = new ScalingUpConfig(userInput->getScalingFactor(),
+                                                              userInput->getSamplingFraction(),
+                                                              userInput->getTopology());
+
+    ScaleUp* scaleUp = new ScaleUp(graph, new TIES(graph), scaleUpSamplesInfo, userInput->getOutputGraphPath());
     scaleUp->run();
 
     delete(scaleUp);
+    delete(scaleUpSamplesInfo);
 }
 
-void Scaling::scaleDown(float samplingFraction, std::string outputFolder) {
+void Scaling::scaleDown() {
     Sampling* sampling = new TIES(graph);
-    sampling->sample(samplingFraction);
+    sampling->run(userInput->getSamplingFraction(), userInput->getOutputGraphPath());
 
     delete(sampling);
 }

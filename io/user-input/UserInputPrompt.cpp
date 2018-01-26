@@ -20,9 +20,9 @@ int UserInputPrompt::getScalingType() {
 }
 
 std::string UserInputPrompt::getInputGraphPath() {
-    std::cout << "Note: the user-input and output paths may not contain any white space (newlines/spaces)." << std::endl;
+    std::cout << "Note: the input and output paths may not contain any white space (newlines/spaces)." << std::endl;
 
-    std::cout << "Enter path user-input graph:" << std::endl;
+    std::cout << "Enter path input graph:" << std::endl;
     std::string specInputGraphPath;
     std::cin >> specInputGraphPath;
 

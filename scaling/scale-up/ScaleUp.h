@@ -24,7 +24,7 @@ private:
 
     std::vector<Graph*> createDistinctSamples();
 
-    void createSample(std::vector<Graph*> &samples, float samplingFraction);
+    void createSample(std::vector<Graph*> &samples, float samplingFraction, std::string identifier);
 
 public:
     ScaleUp(Graph* graph, Sampling* sampling, ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder);

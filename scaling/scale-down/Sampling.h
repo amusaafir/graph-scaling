@@ -15,10 +15,16 @@ protected:
     Graph* graph;
 public:
     Sampling(Graph* graph, std::string samplingAlgorithmName);
+
     virtual Graph* sample(float fraction) = 0;
+
     int getNumberOfVerticesFromFraction(float fraction);
+
     int getNumberOfEdgesFromFraction(float fraction);
+
     int getRandomIntBetweenRange(int min, int max);
+
+    void run(float fraction, std::string outputPath);
 };
 
 

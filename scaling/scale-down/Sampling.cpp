@@ -3,6 +3,7 @@
 //
 
 #include "Sampling.h"
+#include "../../io/WriteSampledGraph.h"
 
 Sampling::Sampling(Graph* graph, std::string samplingAlgorithmName) {
     this->graph = graph;
@@ -23,4 +24,11 @@ int Sampling::getRandomIntBetweenRange(int min, int max) {
     std::uniform_int_distribution<int> dist(min, max);
 
     return dist(engine);
+}
+
+void Sampling::run(float fraction, std::string outputPath) {
+    Graph* graph = sample(fraction);
+
+    WriteSampledGraph* writeSampledGraph = new WriteSampledGraph(graph, outputPath, fraction);
+    writeSampledGraph->writeToFile();
 }
