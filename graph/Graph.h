@@ -12,6 +12,7 @@ private:
     std::string identifier;
     std::unordered_set<int> vertices;
     std::vector<Edge<int>> edges;
+    std::vector<int> highDegreeVertices;
 
 public:
     void addVertex(int vertex);
@@ -29,6 +30,10 @@ public:
     const std::string &getIdentifier() const;
 
     void setIdentifier(const std::string &identifier);
+
+    std::vector<int> &getHighDegreeVertices();
+
+    void setHighDegreeVertices(std::vector<int> &highDegreeVertices);
 };
 
 

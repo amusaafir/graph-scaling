@@ -3,6 +3,7 @@
 //
 
 #include "UserInputPrompt.h"
+#include "../../scaling/scale-up/bridge/HighDegreeBridge.h"
 
 UserInputPrompt::UserInputPrompt() {
 
@@ -37,10 +38,17 @@ std::string UserInputPrompt::getOutputGraphPath() {
     return specOutputFolder;
 }
 
-// TODO
 Bridge* UserInputPrompt::getBridge() {
     int numberInterconnections = getNumberOfInterconnections();
     bool directedBridges = addDirectedBridges();
+
+    std::cout << "Bridge type: [r]andom; [h]igh degree:" << std::endl;
+    char bridgeType;
+    std::cin >> bridgeType;
+
+    if (bridgeType == 'h') {
+        return new HighDegreeBridge(numberInterconnections, directedBridges);
+    }
 
     return new RandomBridge(numberInterconnections, directedBridges);
 }

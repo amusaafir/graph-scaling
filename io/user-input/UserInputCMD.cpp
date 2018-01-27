@@ -3,13 +3,14 @@
 //
 
 #include "UserInputCMD.h"
+#include "../../scaling/scale-up/bridge/HighDegreeBridge.h"
 
 UserInputCMD::UserInputCMD(int argc, char* argv[]) {
     insertArgumentValues(argc, argv);
 }
 
 int UserInputCMD::getScalingType() {
-    bool isScaleUp = inputArguments.size() == 7;
+    bool isScaleUp = inputArguments.size() == 8;
 
     return isScaleUp;
 }
@@ -22,9 +23,13 @@ std::string UserInputCMD::getOutputGraphPath() {
     return inputArguments['o'];
 }
 
-// TODO
 Bridge* UserInputCMD::getBridge() {
+    if (inputArguments['b'] == "high") {
+        return new HighDegreeBridge(getNumberOfInterconnections(), addDirectedBridges());
+    }
+
     return new RandomBridge(getNumberOfInterconnections(), addDirectedBridges());
+
 }
 
 bool UserInputCMD::addDirectedBridges() {
@@ -35,7 +40,7 @@ bool UserInputCMD::addDirectedBridges() {
 }
 
 int UserInputCMD::getNumberOfInterconnections() {
-    return stoi(inputArguments['b']);
+    return stoi(inputArguments['n']);
 }
 
 Topology* UserInputCMD::getTopology() {
@@ -65,7 +70,7 @@ float UserInputCMD::getScalingFactor() {
 void UserInputCMD::insertArgumentValues(int argc, char* argv[]) {
     int opt;
 
-    while ((opt = getopt (argc, argv, "i:o:s:u:t:b:d:")) != -1) {
+    while ((opt = getopt (argc, argv, "i:o:s:u:t:n:d:b:")) != -1) {
         if (!inputArguments.count(opt)) { // TODO: init map and check if it exists
             inputArguments[opt] = optarg;
         } else {

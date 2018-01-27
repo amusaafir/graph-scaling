@@ -36,3 +36,11 @@ const std::string &Graph::getIdentifier() const {
 void Graph::setIdentifier(const std::string &identifier) {
     Graph::identifier = identifier;
 }
+
+std::vector<int> &Graph::getHighDegreeVertices() {
+    return highDegreeVertices;
+}
+
+void Graph::setHighDegreeVertices(std::vector<int> &highDegreeVertices) {
+    Graph::highDegreeVertices = highDegreeVertices;
+}

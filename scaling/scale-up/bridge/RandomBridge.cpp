@@ -29,16 +29,7 @@ int RandomBridge::getRandomVertexFromGraph(Graph *graph) {
 
     // Select random edge
     std::uniform_int_distribution<int> randomEdgeDist(0, graph->getEdges().size() - 1);
-
-
     Edge<int> randomEdge = graph->getEdges()[randomEdgeDist(engine)];
-
-    /*try {
-        *randomEdge = graph->getEdges()[randomEdgeDist(engine)];
-    } catch(const std::out_of_range) {
-        std::cerr << "Out of range error when selecting random edge." << std::endl;
-    }*/
-
     std::uniform_int_distribution<int> randomVertexFromEdgeDist(0, 1);
 
     return (randomVertexFromEdgeDist(engine) > 0) ? randomEdge.getSource() : randomEdge.getTarget();
