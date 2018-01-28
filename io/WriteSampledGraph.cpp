@@ -33,6 +33,6 @@ std::string WriteSampledGraph::createFilename() {
 void WriteSampledGraph::writeGraphEdges(std::ofstream &outputFile) {
     for(int p = 0; p < graph->getEdges().size(); p++) {
         Edge<int> edge = graph->getEdges()[p];
-        outputFile << std::to_string(edge.getSource()) + ", " + std::to_string(edge.getTarget()) + "\n";
+        outputFile << std::to_string(edge.getSource()) + "\t" + std::to_string(edge.getTarget()) + "\n";
     }
 }

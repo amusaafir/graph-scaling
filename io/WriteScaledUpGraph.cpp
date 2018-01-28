@@ -42,7 +42,7 @@ std::string WriteScaledUpGraph::createFilename(ScalingUpConfig *scaleUpSamplesIn
 void WriteScaledUpGraph::writeEdgesFromBridges(std::ofstream &outputFile) const {
     for (int i = 0; i < bridges.size(); i++) {
             Edge<std::string> edge = bridges[i];
-            outputFile << edge.getSource() + ", " + edge.getTarget() + "\n";
+            outputFile << edge.getSource() + "\t" + edge.getTarget() + "\n";
     }
 }
 
@@ -52,7 +52,7 @@ void WriteScaledUpGraph::writeEdgesFromSamples(std::ofstream &outputFile) const 
 
         for(int p = 0; p < samples[i]->getEdges().size(); p++) {
             Edge<int> edge = samples[i]->getEdges()[p];
-            outputFile << std::to_string(edge.getSource()) + graphIdentifier + ", " + std::to_string(edge.getTarget()) + graphIdentifier + "\n";
+            outputFile << std::to_string(edge.getSource()) + graphIdentifier + "\t" + std::to_string(edge.getTarget()) + graphIdentifier + "\n";
         }
     }
 }

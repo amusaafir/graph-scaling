@@ -3,8 +3,6 @@
 //
 
 #include "ScaleUp.h"
-#include "IdentifierTracker.h"
-#include "../../io/WriteScaledUpGraph.h"
 
 ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder) {
     this->graph = graph;

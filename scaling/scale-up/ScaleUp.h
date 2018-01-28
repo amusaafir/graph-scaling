@@ -10,6 +10,8 @@
 #include "../../graph/Graph.h"
 #include "../scale-down/Sampling.h"
 #include "IdentifierTracker.h"
+#include "../../io/WriteScaledUpGraph.h"
+
 
 class ScaleUp {
 private:
