@@ -5,7 +5,9 @@ This tool allows users to scale a graph up or down using sampling as a basis for
 
 ## Scaling Guidelines and Results
 
+- Refer to the [scaling up guidelines](scaling-guidelines.pdf) to target certain property changes whenever scaling up a graph.
 
+- The [scaling-results](scaling-results.pdf) document shows the results of several scaling operations conducted on different graph datasets.
 
 ## Usage
 
