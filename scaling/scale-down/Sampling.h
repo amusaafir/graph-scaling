@@ -13,6 +13,7 @@
 class Sampling {
 protected:
     Graph* graph;
+    std::random_device seed;
 public:
     Sampling(Graph* graph, std::string samplingAlgorithmName);
 

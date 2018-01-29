@@ -11,7 +11,6 @@ HighDegreeBridge::HighDegreeBridge(int numberOfInterconnections, bool forceUndir
 int HighDegreeBridge::getRandomHighDegreeVertex(Graph* graph) {
     // There already exists some high degree nodes here, so just select them for this set.
     if (graph->getHighDegreeVertices().size() > 0) {
-        std::random_device seed;
         std::mt19937 engine(seed());
 
         // Select random high degree vertex

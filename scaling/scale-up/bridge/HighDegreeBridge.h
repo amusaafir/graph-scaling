@@ -13,6 +13,7 @@
 class HighDegreeBridge : public Bridge {
 private:
     int getRandomHighDegreeVertex(Graph* graph);
+    std::random_device seed;
 
     void collectHighDegreeVertices(Graph *graph);
 public:
