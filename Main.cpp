@@ -12,19 +12,16 @@ std::string logo = "  ____                        _        ____                 
         " |____/ \\__,_|_| |_| |_| .__/|_|\\___| |____/| .__/|_|  \\__,_|\\__, |\n"
         "                       |_|                  |_|              |___/ ";
 
-std::string version = "v1.0";
-
-
 void scaleUp(Graph *graph, UserInput *userInput);
 
 void scaleDown(Graph* graph, UserInput *userInput);
 
-UserInput*  getUserInput(int argc, char* argv[]);
+UserInput* getUserInput(int argc, char* argv[]);
 
 void scaleGraph(UserInput *userInput, Graph *graph);
 
 int main(int argc, char* argv[]) {
-    std::cout << logo << version << std::endl;
+    std::cout << logo << std::endl;
 
     UserInput* userInput = getUserInput(argc, argv);
     GraphLoader* graphLoader = new GraphLoader();

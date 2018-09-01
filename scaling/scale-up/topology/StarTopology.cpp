@@ -12,7 +12,7 @@ std::vector<Edge<std::string>> StarTopology::getBridgeEdges(std::vector<Graph*> 
 
     std::vector<Edge<std::string>> bridges;
 
-    for (int i = 1; i < samples.size(); i++) {
+    for (long long i = 1; i < samples.size(); i++) {
         bridge->addBridgesBetweenGraphs(samples[i], coreGraph, bridges);
     }
 

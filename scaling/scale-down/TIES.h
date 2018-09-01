@@ -12,10 +12,10 @@ Implementation of Total Induced Edge Sampling
 
 class TIES : public Sampling {
 private:
-    void edgeBasedNodeSamplingStep(std::unordered_set<int> &sampledVertices, float fraction);
-    void inductionStep(std::unordered_set<int> &sampledVertices, std::vector<Edge<int>> &sampledEdges);
-    bool isVertexSampled(int vertex, std::unordered_set<int> &sampledVertices);
-    Edge<int> getRandomEdge();
+    void edgeBasedNodeSamplingStep(std::unordered_set<long long> &sampledVertices, float fraction);
+    void inductionStep(std::unordered_set<long long> &sampledVertices, std::vector<Edge<long long>> &sampledEdges);
+    bool isVertexSampled(long long vertex, std::unordered_set<long long> &sampledVertices);
+    Edge<long long> getRandomEdge();
 
 public:
     TIES(Graph* graph) : Sampling(graph, "TIES") { };

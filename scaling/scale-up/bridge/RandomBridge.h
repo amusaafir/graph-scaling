@@ -10,10 +10,10 @@
 
 class RandomBridge : public Bridge {
 private:
-    int getRandomVertexFromGraph(Graph* graph);
+    long long getRandomVertexFromGraph(Graph* graph);
 
 public:
-    RandomBridge(int numberOfInterconnections, bool forceUndirectedEdges);
+    RandomBridge(long long numberOfInterconnections, bool forceUndirectedEdges);
     void addBridgesBetweenGraphs(Graph *sourceGraph, Graph *targetGraph, std::vector<Edge<std::string>>& bridges);
     std::string getName();
 };

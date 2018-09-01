@@ -9,8 +9,8 @@ FullyConnectedTopology::FullyConnectedTopology(Bridge* bridge) : Topology(bridge
 std::vector<Edge<std::string>> FullyConnectedTopology::getBridgeEdges(std::vector<Graph*> samples) {
     std::vector<Edge<std::string>> bridges;
 
-    for (int i = 0; i < samples.size(); i++) {
-        for (int p = 0; p < samples.size(); p++) {
+    for (long long i = 0; i < samples.size(); i++) {
+        for (long long p = 0; p < samples.size(); p++) {
             if (i == p) { // Skip, since we don't want to add bridges to the same graph
                 continue;
             }

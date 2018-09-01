@@ -39,7 +39,7 @@ bool UserInputCMD::addDirectedBridges() {
     return forceDirectedBridges;
 }
 
-int UserInputCMD::getNumberOfInterconnections() {
+long long UserInputCMD::getNumberOfInterconnections() {
     return stoi(inputArguments['n']);
 }
 

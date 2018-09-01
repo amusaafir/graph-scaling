@@ -10,17 +10,17 @@ Sampling::Sampling(Graph* graph, std::string samplingAlgorithmName) {
     std::cout << "Selected " << samplingAlgorithmName << " as sampling algorithm." << std::endl;
 }
 
-int Sampling::getNumberOfVerticesFromFraction(float fraction) {
+long long Sampling::getNumberOfVerticesFromFraction(float fraction) {
     return this->graph->getVertices().size() * fraction;
 }
 
-int Sampling::getNumberOfEdgesFromFraction(float fraction) {
+long long Sampling::getNumberOfEdgesFromFraction(float fraction) {
     return this->graph->getEdges().size() * fraction;
 }
 
-int Sampling::getRandomIntBetweenRange(int min, int max) {
+long long Sampling::getRandomIntBetweenRange(long long min, long long max) {
     std::mt19937 engine(seed());
-    std::uniform_int_distribution<int> dist(min, max);
+    std::uniform_int_distribution<long long> dist(min, max);
 
     return dist(engine);
 }

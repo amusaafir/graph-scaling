@@ -3,16 +3,17 @@
 //
 
 #include "TIES.h"
+#include <chrono>
 
 /**
  * Sampling orchestrator function for TIES.
  * @param fraction: from the total amount of vertices.
  */
 Graph* TIES::sample(float fraction) {
-    std::unordered_set<int> sampledVertices;
+    std::unordered_set<long long> sampledVertices;
     edgeBasedNodeSamplingStep(sampledVertices, fraction);
 
-    std::vector<Edge<int>> sampledEdges;
+    std::vector<Edge<long long>> sampledEdges;
     inductionStep(sampledVertices, sampledEdges);
 
     Graph* sampledGraph = new Graph();
@@ -28,17 +29,20 @@ Graph* TIES::sample(float fraction) {
  * @param sampledVertices - set to hold the sampled vertices, which are collected in this function.
  * @param fraction - from the total amount of vertices.
  */
-void TIES::edgeBasedNodeSamplingStep(std::unordered_set<int> &sampledVertices, float fraction) {
+void TIES::edgeBasedNodeSamplingStep(std::unordered_set<long long> &sampledVertices, float fraction) {
     std::cout << "Performing Edge-based Node Sampling step." << std::endl;
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-    int requiredNumberOfVertices = getNumberOfVerticesFromFraction(fraction);
+    long long requiredNumberOfVertices = getNumberOfVerticesFromFraction(fraction);
 
     while (sampledVertices.size() < requiredNumberOfVertices) {
-        Edge<int> edge = getRandomEdge();
+        Edge<long long> edge = getRandomEdge();
         sampledVertices.insert(edge.getSource());
         sampledVertices.insert(edge.getTarget());
     }
 
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::cout << "Time elapsed - edge based node sampling step: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" <<std::endl;
     std::cout << "Finished performing Edge-based Node Sampling step: "
             "collected " << sampledVertices.size() << " sampled vertices." << std::endl;
 }
@@ -50,17 +54,21 @@ void TIES::edgeBasedNodeSamplingStep(std::unordered_set<int> &sampledVertices, f
  * @param sampledEdges - vector to hold the sampled edges, which are collected in this function.
  * @return
  */
-void TIES::inductionStep(std::unordered_set<int> &sampledVertices, std::vector<Edge<int>> &sampledEdges) {
+void TIES::inductionStep(std::unordered_set<long long> &sampledVertices, std::vector<Edge<long long>> &sampledEdges) {
     std::cout << "Performing total induction step." << std::endl;
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-    for (int i = 0; i < graph->getEdges().size(); i++) {
-        Edge<int> edge = graph->getEdges()[i];
+
+    for (long long i = 0; i < graph->getEdges().size(); i++) {
+        Edge<long long> edge = graph->getEdges()[i];
 
         if (isVertexSampled(edge.getSource(), sampledVertices)
             && isVertexSampled(edge.getTarget(), sampledVertices)) {
             sampledEdges.push_back(edge);
         }
     }
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::cout << "Time elapsed - induction step: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" <<std::endl;
 
     std::cout << "Finished performing total induction step: collected " << sampledEdges.size() << " edges." << std::endl;
 }
@@ -71,7 +79,7 @@ void TIES::inductionStep(std::unordered_set<int> &sampledVertices, std::vector<E
  * @param sampledVertices - set to hold the sampled vertices, collected from the Edge-based node sampling function.
  * @return
  */
-bool TIES::isVertexSampled(int vertex, std::unordered_set<int> &sampledVertices) {
+bool TIES::isVertexSampled(long long vertex, std::unordered_set<long long> &sampledVertices) {
     return sampledVertices.find(vertex) != sampledVertices.end();
 }
 
@@ -79,6 +87,6 @@ bool TIES::isVertexSampled(int vertex, std::unordered_set<int> &sampledVertices)
  * Returns a random edge from the graph.
  * @return
  */
-Edge<int> TIES::getRandomEdge() {
+Edge<long long> TIES::getRandomEdge() {
     return graph->getEdges()[getRandomIntBetweenRange(0, graph->getEdges().size() - 1)];
 }

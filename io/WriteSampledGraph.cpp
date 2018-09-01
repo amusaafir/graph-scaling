@@ -11,7 +11,7 @@ WriteSampledGraph::WriteSampledGraph(Graph* graph, std::string outputFolderPath,
 }
 
 void WriteSampledGraph::writeToFile() {
-    std::string outputPath = outputFolderPath + "/" + createFilename() + ".txt";
+    std::string outputPath = outputFolderPath + "/" + getFileName() + ".txt";
 
     std::cout << "Writing output file to " << outputPath << std::endl;
 
@@ -25,14 +25,14 @@ void WriteSampledGraph::writeToFile() {
     std::cout << "Finished writing output file." << std::endl;
 }
 
-std::string WriteSampledGraph::createFilename() {
+std::string WriteSampledGraph::getFileName() {
     return "sampled_graph_" + std::to_string(fraction);
 }
 
 
 void WriteSampledGraph::writeGraphEdges(std::ofstream &outputFile) {
-    for(int p = 0; p < graph->getEdges().size(); p++) {
-        Edge<int> edge = graph->getEdges()[p];
+    for(long long i = 0; i < graph->getEdges().size(); i++) {
+        Edge<long long> edge = graph->getEdges()[i];
         outputFile << std::to_string(edge.getSource()) + "\t" + std::to_string(edge.getTarget()) + "\n";
     }
 }

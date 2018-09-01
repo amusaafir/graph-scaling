@@ -4,17 +4,17 @@
 
 #include "HighDegreeBridge.h"
 
-HighDegreeBridge::HighDegreeBridge(int numberOfInterconnections, bool forceUndirectedEdges)  : Bridge(numberOfInterconnections, addDirectedBridges) {
+HighDegreeBridge::HighDegreeBridge(long long numberOfInterconnections, bool forceUndirectedEdges)  : Bridge(numberOfInterconnections, addDirectedBridges) {
 }
 
 
-int HighDegreeBridge::getRandomHighDegreeVertex(Graph* graph) {
+long long HighDegreeBridge::getRandomHighDegreeVertex(Graph* graph) {
     // There already exists some high degree nodes here, so just select them for this set.
     if (graph->getHighDegreeVertices().size() > 0) {
         std::mt19937 engine(seed());
 
         // Select random high degree vertex
-        std::uniform_int_distribution<int> randomHighDegreeVertexDist(0, graph->getHighDegreeVertices().size() - 1);
+        std::uniform_int_distribution<long long> randomHighDegreeVertexDist(0, graph->getHighDegreeVertices().size() - 1);
 
         return graph->getHighDegreeVertices()[randomHighDegreeVertexDist(engine)];
     }
@@ -27,7 +27,7 @@ int HighDegreeBridge::getRandomHighDegreeVertex(Graph* graph) {
 
 // Map all vertices onto a map along with their degree
 void HighDegreeBridge::collectHighDegreeVertices(Graph *graph)  {
-    std::unordered_map<int, int> nodeDegreeMap;
+    std::unordered_map<long long, long long> nodeDegreeMap;
 
     for (auto &edge : graph->getEdges()) {
         ++nodeDegreeMap[edge.getSource()];
@@ -35,23 +35,23 @@ void HighDegreeBridge::collectHighDegreeVertices(Graph *graph)  {
     }
 
     // Convert the map to a vector
-    std::vector<std::pair<int, int>> nodeDegreesVect(nodeDegreeMap.begin(), nodeDegreeMap.end());
+    std::vector<std::pair<long long, long long>> nodeDegreesVect(nodeDegreeMap.begin(), nodeDegreeMap.end());
 
     // Sort the vector (ascending, high degree nodes are on top)
-    sort(nodeDegreesVect.begin(), nodeDegreesVect.end(), [](const std::pair<int, int> &left, const std::pair<int, int> &right) {
+    sort(nodeDegreesVect.begin(), nodeDegreesVect.end(), [](const std::pair<int, int> &left, const std::pair<long long, long long> &right) {
         return left.second > right.second;
     });
 
     // Collect only the nodes (half of the total nodes) that have a high degree
-    for (int i = 0; i < nodeDegreesVect.size() / 2; i++) {
+    for (long long i = 0; i < nodeDegreesVect.size() / 2; i++) {
         graph->getHighDegreeVertices().push_back(nodeDegreesVect[i].first);
     }
 }
 
 void HighDegreeBridge::addBridgesBetweenGraphs(Graph *sourceGraph, Graph *targetGraph, std::vector<Edge<std::string>>& bridges) {
-    for (int i = 0; i < numberOfInterconnections; i++) {
-        int vertexSource = getRandomHighDegreeVertex(sourceGraph);
-        int vertexTarget = getRandomHighDegreeVertex(targetGraph);
+    for (long long i = 0; i < numberOfInterconnections; i++) {
+        long long vertexSource = getRandomHighDegreeVertex(sourceGraph);
+        long long vertexTarget = getRandomHighDegreeVertex(targetGraph);
 
         bridges.push_back(Edge<std::string>(std::to_string(vertexSource) + sourceGraph->getIdentifier(),
                                             std::to_string(vertexTarget) + targetGraph->getIdentifier()));

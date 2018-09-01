@@ -19,11 +19,11 @@ public:
 
     virtual Graph* sample(float fraction) = 0;
 
-    int getNumberOfVerticesFromFraction(float fraction);
+    long long getNumberOfVerticesFromFraction(float fraction);
 
-    int getNumberOfEdgesFromFraction(float fraction);
+    long long getNumberOfEdgesFromFraction(float fraction);
 
-    int getRandomIntBetweenRange(int min, int max);
+    long long getRandomIntBetweenRange(long long min, long long max);
 
     void run(float fraction, std::string outputPath);
 };

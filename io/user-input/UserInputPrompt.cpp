@@ -63,7 +63,7 @@ bool UserInputPrompt::addDirectedBridges() {
     return addDirectedBridges == 'y';
 }
 
-int UserInputPrompt::getNumberOfInterconnections() {
+long long UserInputPrompt::getNumberOfInterconnections() {
     std::cout << "Number of interconnections between each graph:" << std::endl;
     int numberOfInterconnections;
     std::cin >> numberOfInterconnections;

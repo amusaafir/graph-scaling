@@ -23,7 +23,7 @@ private:
     std::string outputFolderPath;
     float fraction;
 
-    std::string createFilename();
+    std::string getFileName();
 
     void writeGraphEdges(std::ofstream &outputFile);
 public:

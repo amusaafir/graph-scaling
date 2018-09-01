@@ -12,12 +12,12 @@
 
 class HighDegreeBridge : public Bridge {
 private:
-    int getRandomHighDegreeVertex(Graph* graph);
+    long long getRandomHighDegreeVertex(Graph* graph);
     std::random_device seed;
 
     void collectHighDegreeVertices(Graph *graph);
 public:
-    HighDegreeBridge(int numberOfInterconnections, bool forceUndirectedEdges);
+    HighDegreeBridge(long long numberOfInterconnections, bool forceUndirectedEdges);
     void addBridgesBetweenGraphs(Graph *sourceGraph, Graph *targetGraph, std::vector<Edge<std::string>>& bridges);
     std::string getName();
 };

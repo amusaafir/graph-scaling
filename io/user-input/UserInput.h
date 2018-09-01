@@ -33,7 +33,7 @@ public:
 
     virtual std::string getOutputGraphPath() = 0;
 
-    virtual int getNumberOfInterconnections() = 0;
+    virtual long long getNumberOfInterconnections() = 0;
 
     virtual float getSamplingFraction() = 0;
 

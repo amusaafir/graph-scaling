@@ -22,7 +22,7 @@ void GraphLoader::readLines(Graph *graph, std::ifstream &infile) const {
 
     while (getline(infile, line)) {
         std::istringstream iss(line);
-        int source, target;
+        long long source, target;
         if (!(iss >> source >> target)) {
             continue;
         }

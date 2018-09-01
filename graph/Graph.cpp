@@ -4,28 +4,28 @@
 
 #include "Graph.h"
 
-void Graph::addVertex(int vertex) {
+void Graph::addVertex(long long vertex) {
     vertices.insert(vertex);
 }
 
-void Graph::addEdge(int source, int target) {
-    Edge<int> edge(source, target);
+void Graph::addEdge(long long source, long long target) {
+    Edge<long long> edge(source, target);
     edges.push_back(edge);
 }
 
-const std::unordered_set<int> &Graph::getVertices() const {
+const std::unordered_set<long long> &Graph::getVertices() const {
     return vertices;
 }
 
-void Graph::setVertices(const std::unordered_set<int> &vertices) {
+void Graph::setVertices(const std::unordered_set<long long> &vertices) {
     Graph::vertices = vertices;
 }
 
-const std::vector<Edge<int>> &Graph::getEdges() const {
+const std::vector<Edge<long long>> &Graph::getEdges() const {
     return edges;
 }
 
-void Graph::setEdges(const std::vector<Edge<int>> &edges) {
+void Graph::setEdges(const std::vector<Edge<long long>> &edges) {
     Graph::edges = edges;
 }
 
@@ -37,10 +37,10 @@ void Graph::setIdentifier(const std::string &identifier) {
     Graph::identifier = identifier;
 }
 
-std::vector<int> &Graph::getHighDegreeVertices() {
+std::vector<long long> &Graph::getHighDegreeVertices() {
     return highDegreeVertices;
 }
 
-void Graph::setHighDegreeVertices(std::vector<int> &highDegreeVertices) {
+void Graph::setHighDegreeVertices(std::vector<long long> &highDegreeVertices) {
     Graph::highDegreeVertices = highDegreeVertices;
 }

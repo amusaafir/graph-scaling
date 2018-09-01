@@ -10,30 +10,30 @@
 class Graph {
 private:
     std::string identifier;
-    std::unordered_set<int> vertices;
-    std::vector<Edge<int>> edges;
-    std::vector<int> highDegreeVertices;
+    std::unordered_set<long long> vertices;
+    std::vector<Edge<long long>> edges;
+    std::vector<long long> highDegreeVertices;
 
 public:
-    void addVertex(int vertex);
+    void addVertex(long long vertex);
 
-    void addEdge(int source, int target);
+    void addEdge(long long source, long long target);
 
-    const std::unordered_set<int> &getVertices() const;
+    const std::unordered_set<long long> &getVertices() const;
 
-    void setVertices(const std::unordered_set<int> &vertices);
+    void setVertices(const std::unordered_set<long long> &vertices);
 
-    const std::vector<Edge<int>> &getEdges() const;
+    const std::vector<Edge<long long>> &getEdges() const;
 
-    void setEdges(const std::vector<Edge<int>> &edges);
+    void setEdges(const std::vector<Edge<long long>> &edges);
 
     const std::string &getIdentifier() const;
 
     void setIdentifier(const std::string &identifier);
 
-    std::vector<int> &getHighDegreeVertices();
+    std::vector<long long> &getHighDegreeVertices();
 
-    void setHighDegreeVertices(std::vector<int> &highDegreeVertices);
+    void setHighDegreeVertices(std::vector<long long> &highDegreeVertices);
 };
 
 

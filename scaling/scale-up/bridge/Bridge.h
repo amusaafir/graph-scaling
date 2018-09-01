@@ -9,10 +9,10 @@
 
 class Bridge {
 protected:
-    int numberOfInterconnections;
+    long long numberOfInterconnections;
     bool addDirectedBridges;
 public:
-    Bridge(int numberOfInterconnections, bool addDirectedBridges);
+    Bridge(long long numberOfInterconnections, bool addDirectedBridges);
     virtual void addBridgesBetweenGraphs(Graph *sourceGraph, Graph *targetGraph, std::vector<Edge<std::string>>& bridges) = 0;
     virtual std::string getName() = 0;
 };

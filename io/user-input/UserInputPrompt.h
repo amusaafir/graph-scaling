@@ -24,7 +24,7 @@ public:
 
     bool addDirectedBridges();
 
-    int getNumberOfInterconnections();
+    long long getNumberOfInterconnections();
 
     Topology *getTopology();
 

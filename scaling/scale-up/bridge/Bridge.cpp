@@ -4,7 +4,7 @@
 
 #include "Bridge.h"
 
-Bridge::Bridge(int numberOfInterconnections, bool addDirectedBridges) {
+Bridge::Bridge(long long numberOfInterconnections, bool addDirectedBridges) {
         this->numberOfInterconnections = numberOfInterconnections;
         this->addDirectedBridges = addDirectedBridges;
 }
