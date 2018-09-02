@@ -3,6 +3,7 @@
 //
 
 #include "Scaling.h"
+#include "scale-down/RandomNode.h"
 
 Scaling::Scaling(Graph* graph, UserInput* userInput) {
     this->graph = graph;
