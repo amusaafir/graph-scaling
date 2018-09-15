@@ -36,12 +36,10 @@ void TIES::edgeBasedNodeSamplingStep(std::unordered_set<long long> &sampledVerti
     long long requiredNumberOfVertices = getNumberOfVerticesFromFraction(fraction);
 
     std::mt19937 engine(seed());
+    std::uniform_int_distribution<long long> dist(0, graph->getEdges().size() - 1);
 
     while (sampledVertices.size() < requiredNumberOfVertices) {
-        // Get random edge
-        std::uniform_int_distribution<long long> dist(0, graph->getEdges().size() - 1);
-
-        Edge<long long> edge = graph->getEdges()[dist(engine)];
+        Edge<long long> edge = graph->getEdges()[dist(engine)]; // Get random edge
         sampledVertices.insert(edge.getSource());
         sampledVertices.insert(edge.getTarget());
     }
