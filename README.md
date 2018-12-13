@@ -47,8 +47,6 @@ To directly perform a **scaling up** operation, the following parameters are req
 
 ### Parallel & distributed
 
-Make with:
-
 Switch to the 'distributed' branch; compile the project using:
 
     make release
