@@ -7,17 +7,17 @@
 #include "device_functions.h"
 #include <curand.h>
 #include <curand_kernel.h>
-#include "../sampling/EdgeStruct.h"
 #include "CudaErrCheck.h"
 
-extern  __device__ int d_edge_count;
-extern  __constant__ int D_SIZE_EDGES;
-extern __constant__ int D_SIZE_VERTICES;
+#define EXCLUDED -1
+#define INCLUDED -2
 
-extern void perform_induction_step(int block_size, int thread_size, int *d_sampled_vertices, int *d_offsets, int* d_indices, Edge* d_edge_data);
-extern void perform_induction_step_expanding(int block_size, int thread_size, int* d_sampled_vertices, int* d_offsets, int* d_indices, Edge* d_edge_data_expanding, int* d_edge_count_expanding);
+extern __constant__ int D_NODE_START_VERTEX;
+extern  __constant__ int D_NODE_SIZE_EDGES;
+extern __constant__ int D_NODE_END_VERTEX;
 
-__device__ int push_edge(Edge &edge, Edge* d_edge_data);
-__global__ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices, Edge* d_edge_data);
-__device__ int push_edge_expanding(Edge &edge, Edge* edge_data_expanding, int* d_edge_count_expanding);
-__global__ void perform_induction_step_expanding(int* sampled_vertices, int* offsets, int* indices, Edge* edge_data_expanding, int* d_edge_count_expanding);
+extern void perform_induction_step(int block_size, int thread_size, int *d_sampled_vertices, int *d_sources, int* d_destinations, int* d_results, int mpi_id);
+extern void perform_induction_step2(int block_size, int thread_size, int *d_sampled_vertices, int* d_destinations, int* d_results, int curr_node, int curr_node_start_vertex, int curr_node_end_vertex);
+
+__global__ void perform_induction_step(int *d_sampled_vertices, int *d_sources, int* d_destinations, int* d_results, int mpi_id);
+__global__ void perform_induction_step2(int *d_sampled_vertices, int* d_destinations, int* d_results, int curr_node, int curr_node_start_vertex, int curr_node_end_vertex);

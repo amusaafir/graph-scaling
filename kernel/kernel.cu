@@ -1,71 +1,86 @@
 #include "kernel.h"
 
-__constant__ int D_SIZE_EDGES;
-__constant__ int D_SIZE_VERTICES;
-__device__ int d_edge_count = 0;
-void perform_induction_step(int block_size, int thread_size, int *d_sampled_vertices, int *d_offsets, int* d_indices, Edge* d_edge_data) {
-	perform_induction_step <<<block_size, thread_size >>>(d_sampled_vertices, d_offsets, d_indices, d_edge_data);
+__constant__ int D_NODE_START_VERTEX;
+__constant__ int D_NODE_SIZE_EDGES;
+__constant__ int D_NODE_END_VERTEX;
+
+
+void perform_induction_step(int block_size, int thread_size, int *d_sampled_vertices, int *d_sources, int* d_destinations, int* d_results, int mpi_id) {
+	perform_induction_step <<<block_size, thread_size >>>(d_sampled_vertices, d_sources, d_destinations, d_results, mpi_id);
 }
 
-void perform_induction_step_expanding(int block_size, int thread_size, int* d_sampled_vertices, int* d_offsets, int* d_indices, Edge* d_edge_data_expanding, int* d_edge_count_expanding) {
-	perform_induction_step_expanding<<<block_size, thread_size >>>(d_sampled_vertices, d_offsets, d_indices, d_edge_data_expanding, d_edge_count_expanding);
+void perform_induction_step2(int block_size, int thread_size, int *d_sampled_vertices, int* d_destinations, int* d_results, int curr_node, int curr_node_start_vertex, int curr_node_end_vertex) {
+	perform_induction_step2 <<<block_size, thread_size >>>(d_sampled_vertices, d_destinations, d_results, curr_node, curr_node_start_vertex, curr_node_end_vertex);
 }
 
-__device__ int push_edge(Edge &edge, Edge* d_edge_data) {
-	int edge_index = atomicAdd(&d_edge_count, 1);
-	if (edge_index < D_SIZE_EDGES) {
-		d_edge_data[edge_index] = edge;
-		return edge_index;
-	}
-	else {
-		printf("Maximum edge size threshold reached: %d", D_SIZE_EDGES);
-		return -1;
-	}
-}
+__global__ void perform_induction_step(int *d_sampled_vertices, int *d_sources, int* d_destinations, int* d_results, int mpi_id) {
+	int edge_index = blockIdx.x * blockDim.x + threadIdx.x;
+	int source, destination;
 
-__global__ void perform_induction_step(int* sampled_vertices, int* offsets, int* indices, Edge* d_edge_data) {
-	int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
+	/* Skip out of range indices. */
+	if (edge_index < D_NODE_SIZE_EDGES) {
 	
-	if (neighbor_index_start_offset < D_SIZE_VERTICES && sampled_vertices[neighbor_index_start_offset]) {
-		int neighbor_index_end_offset = neighbor_index_start_offset + 1;
+		/* Exclude edges of which the source is not in the sample. */
+		source = d_sources[edge_index] - D_NODE_START_VERTEX;
 
-		for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
-			if (sampled_vertices[indices[n]]) {
-				//printf("\nAdd edge: (%d,%d).", neighbor_index_start_offset, indices[n]);
-				Edge edge;
-				edge.source = neighbor_index_start_offset;
-				edge.destination = indices[n];
-				push_edge(edge, d_edge_data);
+		if (!d_sampled_vertices[source]) {
+			d_results[edge_index] = EXCLUDED;
+		}
+		else {
+			/* If destination is in own vertices range, we can make a decision
+			 * based on the local sample. */
+			destination = d_destinations[edge_index];
+			
+			if (destination >= D_NODE_START_VERTEX
+				&& destination <= D_NODE_END_VERTEX) {
+				
+				destination -= D_NODE_START_VERTEX;
+				if (d_sampled_vertices[destination]) {
+					/* Both source and destination are in local sample, include
+					 * edge. */
+					d_results[edge_index] = INCLUDED;
+				}
+				else {
+					/* Destination not sampled. Don't include edge.  */
+					d_results[edge_index] = EXCLUDED;
+				}
+			}
+			else {
+				/* Destination is in a different node's vertex range.
+				 * Put the destination in the results array so it will be
+				 * updates in one of the next rounds. */
+				d_results[edge_index] = destination;
 			}
 		}
 	}
 }
 
-__device__ int push_edge_expanding(Edge &edge, Edge* edge_data_expanding, int* d_edge_count_expanding) {
-	int edge_index = atomicAdd(d_edge_count_expanding, 1);
-	if (edge_index < D_SIZE_EDGES) {
-		edge_data_expanding[edge_index] = edge;
-		return edge_index;
-	}
-	else {
-		printf("Maximum edge size threshold reached.");
-		return -1;
-	}
-}
+__global__ void perform_induction_step2(int *d_sampled_vertices, int* d_destinations, int* d_results, int curr_node, int curr_node_start_vertex, int curr_node_end_vertex) {
+	int edge_index = blockIdx.x * blockDim.x + threadIdx.x;
+	int destination;
 
-__global__ void perform_induction_step_expanding(int* sampled_vertices, int* offsets, int* indices, Edge* edge_data_expanding, int* d_edge_count_expanding) {
-	int neighbor_index_start_offset = blockIdx.x * blockDim.x + threadIdx.x;
-	
-	if (neighbor_index_start_offset < D_SIZE_VERTICES) {
-		int neighbor_index_end_offset = neighbor_index_start_offset + 1;
+	if (edge_index < D_NODE_SIZE_EDGES) {
 
-		for (int n = offsets[neighbor_index_start_offset]; n < offsets[neighbor_index_end_offset]; n++) {
-			if (sampled_vertices[neighbor_index_start_offset] && sampled_vertices[indices[n]]) {
-				Edge edge;
-				edge.source = neighbor_index_start_offset;
-				edge.destination = indices[n];
-				push_edge_expanding(edge, edge_data_expanding, d_edge_count_expanding);
+		destination = d_results[edge_index];
+		/* Check if result depends on me. Because dst/EXCLUDED/INCLUDED was put
+		 * in the result, only 1 read is needed, and no calculation of on which
+		 * node the vertex resides. */
+		if (destination >= curr_node_start_vertex
+			&& destination <= curr_node_end_vertex) {
+
+			/* If destination is the current local sample, we can make a
+			 * decision. */
+			destination -= curr_node_start_vertex;
+
+			if (d_sampled_vertices[destination]) {
+				/* Both source and destination are in local sample, include
+				 * edge. */
+				d_results[edge_index] = INCLUDED;
 			}
+			else {
+				/* Destination not sampled. Don't include edge. */
+				d_results[edge_index] = EXCLUDED;
+			}	
 		}
 	}
 }

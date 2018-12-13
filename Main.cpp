@@ -1,56 +1,52 @@
-#include <iostream>
-#include <map>
-#include "scaling/Scaling.h"
-#include "io/GraphLoader.h"
-#include "io/user-input/UserInputPrompt.h"
-#include "io/user-input/UserInputCMD.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <mpi.h>
+#include "sampling/Sampling.h"
 
-std::string logo = "  ____                        _        ____                        \n"
-        " / ___|  __ _ _ __ ___  _ __ | | ___  / ___| _ __  _ __ __ _ _   _ \n"
-        " \\___ \\ / _` | '_ ` _ \\| '_ \\| |/ _ \\ \\___ \\| '_ \\| '__/ _` | | | |\n"
-        "  ___) | (_| | | | | | | |_) | |  __/  ___) | |_) | | | (_| | |_| |\n"
-        " |____/ \\__,_|_| |_| |_| .__/|_|\\___| |____/| .__/|_|  \\__,_|\\__, |\n"
-        "                       |_|                  |_|              |___/ ";
-
-void scaleUp(Graph *graph, UserInput *userInput);
-
-void scaleDown(Graph* graph, UserInput *userInput);
-
-UserInput* getUserInput(int argc, char* argv[]);
-
-void scaleGraph(UserInput *userInput, Graph *graph);
 
 int main(int argc, char* argv[]) {
-    std::cout << logo << std::endl;
+	int mpi_id;
+	int mpi_size;
 
-    UserInput* userInput = getUserInput(argc, argv);
-    GraphLoader* graphLoader = new GraphLoader();
-    Graph* graph = graphLoader->loadGraph(userInput->getInputGraphPath());
+	/* Initialize MPI. */
+	MPI_Init (&argc, &argv);
+	MPI_Comm_size (MPI_COMM_WORLD, &mpi_size);
+	MPI_Comm_rank (MPI_COMM_WORLD, &mpi_id);
 
-    scaleGraph(userInput, graph);
+	if (mpi_id == 0) {
+		printf("Running with %d MPI processes.\n", mpi_size);
+	}
 
-    delete(userInput);
-    delete(graphLoader);
+	const int MINIMUM_REQUIRED_INPUT_PARAMETERS = 6;
 
-    return 0;
-}
+	if (argc >= MINIMUM_REQUIRED_INPUT_PARAMETERS) {
+		char* input_path = argv[1];
+		char* output_path = argv[2];
 
-void scaleGraph(UserInput* userInput, Graph *graph) {
-    Scaling* scaling = new Scaling(graph, userInput);
+		GraphIO* graph_io = new GraphIO();
+		graph_io->collect_sampling_parameters(argv);
+		Sampling* sampler = new Sampling(graph_io);
 
-    if (userInput->getScalingType() == 1) {
-        scaling->scaleUp();
-    } else {
-        scaling->scaleDown();
-    }
+		sampler->collect_sampling_parameters(argv);
+		sampler->sample_graph(input_path, output_path, mpi_size, mpi_id);
 
-    delete(scaling);
-}
+		delete(sampler);
+		delete(graph_io);
 
-UserInput* getUserInput(int argc, char* argv[]) {
-    if (argc > 1) {
-        return new UserInputCMD(argc, argv);
-    }
+	} else {
+		if (mpi_id == 0) {
+			printf("Incorrect amount of input/output arguments given.\n");
+			printf("Usage: ./sample <input file> <output file> ");
+			printf("<sampling fraction> <CPU memory size (bytes)> ");
+			printf("<GPU memory size (bytes)>\n");
+		}
+	}
 
-    return new UserInputPrompt();
+	MPI_Finalize();
+
+	if (mpi_id == 0)
+		printf("\nExecution terminates.\n");
+
+	return 0;
 }
