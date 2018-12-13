@@ -51,7 +51,7 @@ Switch to the 'distributed' branch; compile the project using:
 
     make release
 
-Run on a distributed cluster with:
+Run on a cluster with:
 
     prun -np <number of compute nodes> -v -1 -reserve <reservation id> -sge-script $PRUN_ETC/prun-openmpi sample <input file> <output file> <sampling fraction> <CPU mem limit (bytes, per node)> <GPU mem limit (bytes, per node)>
 
