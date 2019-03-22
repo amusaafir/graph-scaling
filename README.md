@@ -14,7 +14,12 @@ This tool allows users to scale a graph up or down using sampling as a basis for
 
 ### Compilation
 
-TODO
+```
+mkdir build
+cd build
+cmake ../
+make -j$NPROC
+```
 
 
 ###  Single thread and machine
