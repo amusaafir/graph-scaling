@@ -24,6 +24,7 @@ std::string UserInputPrompt::getInputGraphPath() {
     std::cout << "Note: the input and output paths may not contain any white space (newlines/spaces)." << std::endl;
 
     std::cout << "Enter path input graph:" << std::endl;
+
     std::string specInputGraphPath;
     std::cin >> specInputGraphPath;
 
@@ -33,6 +34,7 @@ std::string UserInputPrompt::getInputGraphPath() {
 std::string UserInputPrompt::getOutputGraphPath() {
     std::string specOutputFolder;
     std::cout << "Enter path output folder:" << std::endl;
+
     std::cin >> specOutputFolder;
 
     return specOutputFolder;
@@ -43,6 +45,7 @@ Bridge* UserInputPrompt::getBridge() {
     bool directedBridges = addDirectedBridges();
 
     std::cout << "Bridge type: [r]andom; [h]igh degree:" << std::endl;
+
     char bridgeType;
     std::cin >> bridgeType;
 
@@ -55,16 +58,16 @@ Bridge* UserInputPrompt::getBridge() {
 
 bool UserInputPrompt::addDirectedBridges() {
     std::cout << "Add directed bridges (y/n)?" << std::endl;
+
     char addDirectedBridges;
     std::cin >> addDirectedBridges;
-
-    std::cout<<(addDirectedBridges == 'y' )<< std::endl;
 
     return addDirectedBridges == 'y';
 }
 
 long long UserInputPrompt::getNumberOfInterconnections() {
     std::cout << "Number of interconnections between each graph:" << std::endl;
+
     int numberOfInterconnections;
     std::cin >> numberOfInterconnections;
 
@@ -84,7 +87,8 @@ Topology* UserInputPrompt::getTopology() {
 }
 
 float UserInputPrompt::getSamplingFraction() {
-    std::cout << "Sample size per graph: " << std::endl;
+    std::cout << "Sample size:" << std::endl;
+
     float samplingFraction;
     std::cin >> samplingFraction;
 
@@ -93,6 +97,7 @@ float UserInputPrompt::getSamplingFraction() {
 
 float UserInputPrompt::getScalingFactor() {
     std::cout << "Scaling factor: " << std::endl;
+
     float scalingFactor;
     std::cin >> scalingFactor;
 

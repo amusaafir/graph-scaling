@@ -28,6 +28,6 @@ long long Sampling::getRandomIntBetweenRange(long long min, long long max) {
 void Sampling::run(float fraction, std::string outputPath) {
     Graph* graph = sample(fraction);
 
-    WriteSampledGraph* writeSampledGraph = new WriteSampledGraph(graph, outputPath, fraction);
-    writeSampledGraph->writeToFile();
+    WriteGraph* writeSampledGraph = new WriteSampledGraph(graph, outputPath, fraction);
+    writeSampledGraph->write();
 }

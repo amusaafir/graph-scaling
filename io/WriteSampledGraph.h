@@ -7,29 +7,30 @@
 
 #include <iostream>
 #include <string>
-#include "../graph/Graph.h"
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <math.h>
 #include <iomanip>
 #include <sstream>
+#include <iomanip>
 
-// TODO: Re-use WriteScaledUpGraph; extract original input graph name
+#include "../graph/Graph.h"
+#include "WriteGraph.h"
 
-class WriteSampledGraph {
+class WriteSampledGraph : public WriteGraph {
 private:
     Graph* graph;
-    std::string outputFolderPath;
     float fraction;
 
     std::string getFileName();
 
     void writeGraphEdges(std::ofstream &outputFile);
-public:
-    WriteSampledGraph(Graph* graph, std::string outputFolderPath, float fraction);
 
     void writeToFile();
+
+public:
+    WriteSampledGraph(Graph* graph, std::string outputFolderPath, float fraction);
 };
 
 

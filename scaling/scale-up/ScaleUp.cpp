@@ -18,8 +18,8 @@ void ScaleUp::run() {
 
     std::vector<Edge<std::string>> bridges = scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples);
 
-    WriteScaledUpGraph* writeScaledUpGraph = new WriteScaledUpGraph(outputFolder, samples, bridges);
-    writeScaledUpGraph->writeToFile(scaleUpSamplesInfo);
+    WriteGraph* writeScaledUpGraph = new WriteScaledUpGraph(outputFolder, samples, bridges, scaleUpSamplesInfo);
+    writeScaledUpGraph->write();
 
     delete(writeScaledUpGraph);
 }

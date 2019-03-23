@@ -11,22 +11,19 @@ WriteSampledGraph::WriteSampledGraph(Graph* graph, std::string outputFolderPath,
 }
 
 void WriteSampledGraph::writeToFile() {
-    std::string outputPath = outputFolderPath + "/" + getFileName() + ".txt";
-
-    std::cout << "Writing output file to " << outputPath << std::endl;
-
-    std::ofstream outputFile(outputPath);
+    std::ofstream outputFile(outputFolderPath + "/" + getFileName());
 
     if (outputFile.is_open()) {
         writeGraphEdges(outputFile);
         outputFile.close();
     }
-
-    std::cout << "Finished writing output file." << std::endl;
 }
 
 std::string WriteSampledGraph::getFileName() {
-    return "sampled_graph_" + std::to_string(fraction);
+    std::stringstream stream;
+    stream << std::fixed << std::setprecision(2) << fraction;
+
+    return "sampled_graph_" + stream.str() + OUTPUT_EXTENSION;
 }
 
 

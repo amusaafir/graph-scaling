@@ -4,39 +4,36 @@
 
 #include "WriteScaledUpGraph.h"
 
-WriteScaledUpGraph::WriteScaledUpGraph(std::string outputFolderPath, std::vector<Graph*> samples, std::vector<Edge<std::string>> bridges) {
+WriteScaledUpGraph::WriteScaledUpGraph(std::string outputFolderPath, std::vector<Graph*> samples,
+                                       std::vector<Edge<std::string>> bridges, ScalingUpConfig* scalingUpConfig) {
     this->outputFolderPath = outputFolderPath;
     this->samples = samples;
     this->bridges = bridges;
+    this->scalingUpConfig = scalingUpConfig;
 }
 
-void WriteScaledUpGraph::writeToFile(ScalingUpConfig* scaleUpSamplesInfo) {
-    std::string filename = createFilename(scaleUpSamplesInfo);
-
-    std::cout << "Writing output file to " << outputFolderPath + "/" + filename + ".txt" << std::endl;
-
-    std::ofstream outputFile(outputFolderPath + "/" + filename + ".txt");
+void WriteScaledUpGraph::writeToFile() {
+    std::ofstream outputFile(outputFolderPath + "/" + getFileName());
 
     if (outputFile.is_open()) {
         writeEdgesFromSamples(outputFile);
         writeEdgesFromBridges(outputFile);
         outputFile.close();
     }
-
-    std::cout << "Finished writing output file." << std::endl;
 }
 
-std::string WriteScaledUpGraph::createFilename(ScalingUpConfig *scaleUpSamplesInfo) const {
+std::string WriteScaledUpGraph::getFileName() {
     std::stringstream samplingFractionStream, scalingFactorStream;
-    samplingFractionStream << std::fixed << std::setprecision(2) << scaleUpSamplesInfo->getSamplingFraction();
-    scalingFactorStream << std::fixed << std::setprecision(2) << scaleUpSamplesInfo->getScalingFactor();
+    samplingFractionStream << std::fixed << std::setprecision(2) << this->scalingUpConfig->getSamplingFraction();
+    scalingFactorStream << std::fixed << std::setprecision(2) << this->scalingUpConfig->getScalingFactor();
 
     std::string filename = "expanded_graph_"
                                     + samplingFractionStream.str() + "_"
                                     + scalingFactorStream.str() + "_"
-                                    + scaleUpSamplesInfo->getTopology()->getName() + "_"
-                                    + scaleUpSamplesInfo->getTopology()->getBridge()->getName();
-    return filename;
+                                    + this->scalingUpConfig->getTopology()->getName() + "_"
+                                    + this->scalingUpConfig->getTopology()->getBridge()->getName();
+
+    return filename + OUTPUT_EXTENSION;
 }
 
 void WriteScaledUpGraph::writeEdgesFromBridges(std::ofstream &outputFile) const {
