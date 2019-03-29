@@ -15,7 +15,7 @@ private:
     long long getRandomHighDegreeVertex(Graph* graph);
     std::random_device seed;
 
-    void collectHighDegreeVertices(Graph *graph);
+    void collectHighDegreeVerticesForGraph(Graph *graph);
 public:
     HighDegreeBridge(long long numberOfInterconnections, bool forceUndirectedEdges);
     void addBridgesBetweenGraphs(Graph *sourceGraph, Graph *targetGraph, std::vector<Edge<std::string>>& bridges);
