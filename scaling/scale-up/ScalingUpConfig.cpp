@@ -51,3 +51,7 @@ float ScalingUpConfig::getSamplingFraction() {
 Topology* ScalingUpConfig::getTopology() {
     return topology;
 }
+
+void ScalingUpConfig::setTopology(Topology* topology) {
+    this->topology = topology;
+}

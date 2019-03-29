@@ -37,6 +37,8 @@ public:
     float getSamplingFraction();
 
     Topology* getTopology();
+
+    void setTopology(Topology* topology);
 };
 
 
