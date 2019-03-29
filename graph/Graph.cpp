@@ -40,7 +40,3 @@ void Graph::setIdentifier(const std::string &identifier) {
 std::vector<long long> &Graph::getHighDegreeVertices() {
     return highDegreeVertices;
 }
-
-void Graph::setHighDegreeVertices(std::vector<long long> &highDegreeVertices) {
-    Graph::highDegreeVertices = highDegreeVertices;
-}

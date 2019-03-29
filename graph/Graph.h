@@ -32,8 +32,6 @@ public:
     void setIdentifier(const std::string &identifier);
 
     std::vector<long long> &getHighDegreeVertices();
-
-    void setHighDegreeVertices(std::vector<long long> &highDegreeVertices);
 };
 
 

@@ -7,25 +7,26 @@
 HighDegreeBridge::HighDegreeBridge(long long numberOfInterconnections, bool forceUndirectedEdges)  : Bridge(numberOfInterconnections, addDirectedBridges) {
 }
 
-
+/**
+ * Return a single random high degree vertex from a graph (note: this method assumes that a list of high degree
+ * vertices were already collected using the collectHighDegreeVertices function.
+ * @param graph
+ * @return a random high degree vertex from a graph
+ */
 long long HighDegreeBridge::getRandomHighDegreeVertex(Graph* graph) {
-    // There already exists some high degree nodes here, so just select them for this set.
-    if (graph->getHighDegreeVertices().size() > 0) {
-        std::mt19937 engine(seed());
+    std::mt19937 engine(seed());
 
-        // Select random high degree vertex
-        std::uniform_int_distribution<long long> randomHighDegreeVertexDist(0, graph->getHighDegreeVertices().size() - 1);
+    // Select random high degree vertex
+    std::uniform_int_distribution<long long> randomHighDegreeVertexDist(0, graph->getHighDegreeVertices().size() - 1);
 
-        return graph->getHighDegreeVertices()[randomHighDegreeVertexDist(engine)];
-    }
+    return graph->getHighDegreeVertices()[randomHighDegreeVertexDist(engine)];
 
-    // Since we didn't collect any high degree vertices for this graph, collect them and collect one from it.
-    collectHighDegreeVertices(graph);
-
-    return getRandomHighDegreeVertex(graph);
 }
 
-// Map all vertices onto a map along with their degree
+/**
+ * Maps all vertices onto a map along with their degree. Add the high degree vertices to the given graph.
+ * @param graph - Graph in which the high degree vertices will be assigned to.
+ */
 void HighDegreeBridge::collectHighDegreeVertices(Graph *graph)  {
     std::unordered_map<long long, long long> nodeDegreeMap;
 
@@ -48,7 +49,21 @@ void HighDegreeBridge::collectHighDegreeVertices(Graph *graph)  {
     }
 }
 
+/**
+ * Adds bridges given two graphs.
+ * @param sourceGraph
+ * @param targetGraph
+ * @param bridges
+ */
 void HighDegreeBridge::addBridgesBetweenGraphs(Graph *sourceGraph, Graph *targetGraph, std::vector<Edge<std::string>>& bridges) {
+    if (sourceGraph->getHighDegreeVertices().empty()) {
+        collectHighDegreeVertices(sourceGraph);
+    }
+
+    if (targetGraph->getHighDegreeVertices().empty()) {
+        collectHighDegreeVertices(targetGraph);
+    }
+
     for (long long i = 0; i < numberOfInterconnections; i++) {
         long long vertexSource = getRandomHighDegreeVertex(sourceGraph);
         long long vertexTarget = getRandomHighDegreeVertex(targetGraph);
