@@ -4,7 +4,7 @@ mkdir lib
 
 # Snap-stanford
 
-wget https://github.com/snap-stanford/snap/archive/master.zip -P lib
+wget https://github.com/amusaafir/snap/archive/master.zip -P lib
 
 unzip lib/master.zip -d lib
 
