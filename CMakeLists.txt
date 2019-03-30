@@ -32,9 +32,9 @@ add_executable(graph_scaling_tool ${OBJS} Main.cpp ${SOURCE_FILES})
 #)
 
 if(BUILD_TEST)
-    add_subdirectory(lib/googletest-master)
-    include_directories(lib/googletest-master/googletest/include)
-    include_directories(lib/googletest-master/googlemock/include)
+    add_subdirectory(lib/googletest)
+    include_directories(lib/googletest/googletest/include)
+    include_directories(lib/googletest/googlemock/include)
 
     set(TEST_FILES tests/TestHighDegreeBridge.cpp tests/TestInit.cpp)
     add_executable(test_graph_scaling_tool ${SOURCE_FILES} ${TEST_FILES})
