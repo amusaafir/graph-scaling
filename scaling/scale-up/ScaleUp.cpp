@@ -3,6 +3,7 @@
 //
 
 #include "ScaleUp.h"
+#include "auto-tuner/Autotuner.h"
 
 ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder) {
     this->graph = graph;
@@ -16,7 +17,22 @@ void ScaleUp::run() {
 
     std::vector<Graph*> samples = createDistinctSamples();
 
-    std::vector<Edge<std::string>> bridges = scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples);
+    bool isAutotunerEnabled = false; // TODO: Add to user input
+
+    std::vector<Edge<std::string>> bridges;
+
+    if (isAutotunerEnabled) {
+        //Autotuner* autotuner = new Autotuner(graph, samples);
+
+        GraphAnalyser* graphAnalyser= new GraphAnalyser();
+
+        graphAnalyser->loadGraph(samples, scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples));
+
+        //delete(autotuner);
+        delete(graphAnalyser);
+    } else {
+        bridges = scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples);
+    }
 
     WriteGraph* writeScaledUpGraph = new WriteScaledUpGraph(outputFolder, samples, bridges, scaleUpSamplesInfo);
     writeScaledUpGraph->write();

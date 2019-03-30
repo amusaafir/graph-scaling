@@ -11,6 +11,7 @@
 #include "../scale-down/Sampling.h"
 #include "IdentifierTracker.h"
 #include "../../io/WriteScaledUpGraph.h"
+#include "auto-tuner/GraphAnalyser.h"
 
 
 class ScaleUp {
