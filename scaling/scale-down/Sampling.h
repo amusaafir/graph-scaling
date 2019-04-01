@@ -26,6 +26,8 @@ public:
     long long getRandomIntBetweenRange(long long min, long long max);
 
     void run(float fraction, std::string outputPath);
+
+    Graph* getFullGraphCopy();
 };
 
 

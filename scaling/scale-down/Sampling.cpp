@@ -28,6 +28,18 @@ long long Sampling::getRandomIntBetweenRange(long long min, long long max) {
 void Sampling::run(float fraction, std::string outputPath) {
     Graph* graph = sample(fraction);
 
-    WriteGraph* writeSampledGraph = new WriteSampledGraph(graph, outputPath, fraction);
+    WriteGraph* writeSampledGraph = new WriteSampledGraph(graph, outputPath, fraction); // TODO: Delete this later.
     writeSampledGraph->write();
+}
+
+/**
+ * @return full copy of the input graph (in case the sample size is 1.0)
+ */
+Graph* Sampling::getFullGraphCopy() {
+    std::cout << "Copying the full graph." << std::endl;
+    Graph* fullCopy = new Graph(); // TODO: Delete this later.
+    fullCopy->setVertices(graph->getVertices());
+    fullCopy->setEdges(graph->getEdges());
+
+    return fullCopy;
 }
