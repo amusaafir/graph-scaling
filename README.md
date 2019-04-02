@@ -32,7 +32,7 @@ Running `graph_scaling_tool` without any parameter should prompt the user severa
 To perform one of the two operations directly, the user must specify at least:
 
 - The input graph path: **`-i`** (e.g., `-i /home/user/graph.csv`). Note that this can be any format, as long as the input graph is an edge list (where each vertex is represented numerically)
-- The output path: **`-o`** (e.g., `-o /home/user/`)
+- The output (folder) path: **`-o`** (e.g., `-o /home/user/`)
 
 
 To directly perform a **scaling down** operation, the **`-s`** parameter is required to specify the preferred sample size (based on the number of vertices). This parameter should be between 0 and 1. 
