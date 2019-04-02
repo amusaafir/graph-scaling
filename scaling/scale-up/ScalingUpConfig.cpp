@@ -9,8 +9,10 @@ ScalingUpConfig::ScalingUpConfig(float scalingFactor, float samplingFraction, To
     this->samplingFraction = samplingFraction;
     this->topology = topology;
 
-    setRemainder(fmod(scalingFactor * 100, samplingFraction * 100) / 100);
-    setAmountOfSamples(scalingFactor / samplingFraction);
+    float rem = (long long)round(scalingFactor * 100) % (long long)round(samplingFraction * 100) / 100.0;
+    setRemainder(rem);
+    int nrSamples = (scalingFactor*1000) / (samplingFraction*1000);
+    setAmountOfSamples(nrSamples);
     determineAdditionalSampling();
 }
 

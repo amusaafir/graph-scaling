@@ -6,6 +6,7 @@
 #define GRAPH_SCALING_TOOL_SCALEUPSAMPLEREMAINDER_H
 
 #include <math.h>
+#include <iostream>
 #include "topology/Topology.h"
 #include "bridge/Bridge.h"
 
