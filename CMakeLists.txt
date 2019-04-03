@@ -29,7 +29,7 @@ if(BUILD_TEST)
     include_directories(lib/googletest/googletest/include)
     include_directories(lib/googletest/googlemock/include)
 
-    set(TEST_FILES tests/TestHighDegreeBridge.cpp tests/TestInit.cpp)
+    set(TEST_FILES tests/TestHighDegreeBridge.cpp tests/TestInit.cpp tests/TestScalingUpConfig.cpp)
     add_executable(test_graph_scaling_tool ${OBJS} ${SOURCE_FILES} ${TEST_FILES})
 
     target_link_libraries(test_graph_scaling_tool gtest gtest_main)
