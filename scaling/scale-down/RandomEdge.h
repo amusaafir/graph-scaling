@@ -12,7 +12,6 @@
 class RandomEdge : public Sampling {
 private:
     void edgeSamplingStep(std::unordered_set<long long>& samplesVertices, std::vector<Edge<long long>>& sampledEdges, float fraction);
-    Edge<long long> getRandomEdge();
 
 public:
     RandomEdge(Graph* graph) : Sampling(graph, "RandomEdge") { };

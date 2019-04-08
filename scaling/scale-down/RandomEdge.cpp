@@ -20,23 +20,17 @@ Graph* RandomEdge::sample(float fraction) {
 
 void RandomEdge::edgeSamplingStep(std::unordered_set<long long>& samplesVertices, std::vector<Edge<long long>>& sampledEdges, float fraction) {
     long long preferredEdgesSize = graph->getEdges().size() * fraction;
-
-    std::unordered_map<long long, std::unordered_set<long long>> collectedEdges; // source, target
-
+    long long edgeSizeOriginalGraph = graph->getEdges().size();
+    std::unordered_set<long long> sampledEdgeIndices;
 
     while (sampledEdges.size() < preferredEdgesSize) {
-        Edge<long long> sampledEdge = getRandomEdge();
+        long long randomEdgeIndex = getRandomIntBetweenRange(0, edgeSizeOriginalGraph - 1);
 
-        // Edge does not exist
-        if (!(collectedEdges.count(sampledEdge.getSource()) &&
-            collectedEdges[sampledEdge.getSource()].count(sampledEdge.getTarget()))) {
-
-
+        // Check if the edge (index) has already been sampled before. If it is isn't, collect the edge.
+        if (!sampledEdgeIndices.count(randomEdgeIndex)) {
+            Edge<long long int> edge = graph->getEdges()[randomEdgeIndex];
+            sampledEdges.push_back(edge);
+            sampledEdgeIndices.insert(randomEdgeIndex);
         }
     }
-}
-
-// TODO: Put in base class (as this function is also used in TIES)
-Edge<long long> RandomEdge::getRandomEdge() {
-    return graph->getEdges()[getRandomIntBetweenRange(0, graph->getEdges().size() - 1)];
 }
