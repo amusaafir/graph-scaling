@@ -20,7 +20,7 @@ Graph* RandomEdge::sample(float fraction) {
     return sampledGraph;
 }
 
-void RandomEdge::edgeSamplingStep(std::unordered_set<long long>& samplesVertices, std::vector<Edge<long long>>& sampledEdges, float fraction) {
+void RandomEdge::edgeSamplingStep(std::unordered_set<long long>& sampledVertices, std::vector<Edge<long long>>& sampledEdges, float fraction) {
     std::cout << "Performing edge sampling." << std::endl;
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
@@ -31,10 +31,17 @@ void RandomEdge::edgeSamplingStep(std::unordered_set<long long>& samplesVertices
     while (sampledEdges.size() < preferredEdgesSize) {
         long long randomEdgeIndex = getRandomIntBetweenRange(0, edgeSizeOriginalGraph - 1);
 
-        // Check if the edge (index) has already been sampled before. If it is isn't, collect the edge.
+        // Check if the edge (index) has already been sampled before. If it is isn't, collect the edge (and end-vertices).
         if (!sampledEdgeIndices.count(randomEdgeIndex)) {
             Edge<long long int> edge = graph->getEdges()[randomEdgeIndex];
+            // Collect vertices
+            sampledVertices.insert(edge.getSource());
+            sampledVertices.insert(edge.getTarget());
+
+            // Collect edge
             sampledEdges.push_back(edge);
+
+            // Add sampled edge
             sampledEdgeIndices.insert(randomEdgeIndex);
         }
     }
@@ -42,5 +49,5 @@ void RandomEdge::edgeSamplingStep(std::unordered_set<long long>& samplesVertices
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
     std::cout << "Time elapsed - edge sampling: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" <<std::endl;
     std::cout << "Finished performing edge sampling: "
-                 "collected " << sampledEdges.size() << " sampled edges." << std::endl;
+                 "collected " << sampledVertices.size() << " vertices and " << sampledEdges.size() << " edges." << std::endl;
 }
