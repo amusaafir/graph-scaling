@@ -8,8 +8,10 @@
 
 #include "UserInput.h"
 #include "../../scaling/scale-up/bridge/RandomBridge.h"
+#include "../../scaling/scale-down/Sampling.h"
 #include <sstream>
 #include <array>
+#include <string>
 
 class UserInputCMD : public UserInput {
 private:
@@ -36,6 +38,8 @@ public:
     float getSamplingFraction();
 
     float getScalingFactor();
+
+    Sampling* getSamplingAlgorithm(Graph* graph);
 };
 
 

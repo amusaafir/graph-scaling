@@ -6,6 +6,7 @@
 #define GRAPH_SCALING_TOOL_RANDOMEDGE_H
 
 
+#include <chrono>
 #include "Sampling.h"
 #include <unordered_map>
 

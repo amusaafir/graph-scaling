@@ -4,6 +4,9 @@
 
 #include "UserInputCMD.h"
 #include "../../scaling/scale-up/bridge/HighDegreeBridge.h"
+#include "../../scaling/scale-down/Sampling.h"
+#include "../../scaling/scale-down/RandomEdge.h"
+#include "../../scaling/scale-down/TIES.h"
 
 UserInputCMD::UserInputCMD(int argc, char* argv[]) {
     insertArgumentValues(argc, argv);
@@ -67,10 +70,18 @@ float UserInputCMD::getScalingFactor() {
     return stof(inputArguments['u']);
 }
 
+Sampling* UserInputCMD::getSamplingAlgorithm(Graph* graph) {
+    if (inputArguments['a'] == "randomedge") {
+        return new RandomEdge(graph);
+    }
+
+    return new TIES(graph);
+}
+
 void UserInputCMD::insertArgumentValues(int argc, char* argv[]) {
     int opt;
 
-    while ((opt = getopt (argc, argv, "i:o:s:u:t:n:d:b:")) != -1) {
+    while ((opt = getopt (argc, argv, "i:o:s:u:t:n:d:b:a:")) != -1) {
         if (!inputArguments.count(opt)) { // TODO: init map and check if it exists
             inputArguments[opt] = optarg;
         } else {

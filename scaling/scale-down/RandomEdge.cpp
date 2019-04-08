@@ -19,6 +19,9 @@ Graph* RandomEdge::sample(float fraction) {
 }
 
 void RandomEdge::edgeSamplingStep(std::unordered_set<long long>& samplesVertices, std::vector<Edge<long long>>& sampledEdges, float fraction) {
+    std::cout << "Performing edge sampling." << std::endl;
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
     long long preferredEdgesSize = graph->getEdges().size() * fraction;
     long long edgeSizeOriginalGraph = graph->getEdges().size();
     std::unordered_set<long long> sampledEdgeIndices;
@@ -33,4 +36,9 @@ void RandomEdge::edgeSamplingStep(std::unordered_set<long long>& samplesVertices
             sampledEdgeIndices.insert(randomEdgeIndex);
         }
     }
+
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::cout << "Time elapsed - edge sampling: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" <<std::endl;
+    std::cout << "Finished performing edge sampling: "
+                 "collected " << sampledEdges.size() << " sampled edges." << std::endl;
 }

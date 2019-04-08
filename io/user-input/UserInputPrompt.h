@@ -31,6 +31,8 @@ public:
     float getSamplingFraction();
 
     float getScalingFactor();
+
+    Sampling* getSamplingAlgorithm(Graph*);
 };
 
 

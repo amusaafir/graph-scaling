@@ -14,6 +14,7 @@
 #include "../../scaling/scale-up/topology/ChainTopology.h"
 #include "../../scaling/scale-up/topology/RingTopology.h"
 #include "../../scaling/scale-up/topology/FullyConnectedTopology.h"
+#include "../../scaling/scale-down/Sampling.h"
 
 class UserInput {
 protected:
@@ -44,6 +45,8 @@ public:
     virtual Bridge* getBridge() = 0;
 
     virtual Topology* getTopology() = 0;
+
+    virtual Sampling* getSamplingAlgorithm(Graph*) = 0;
 };
 
 

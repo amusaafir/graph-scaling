@@ -15,7 +15,7 @@ void Scaling::scaleUp() {
                                                               userInput->getSamplingFraction(),
                                                               userInput->getTopology());
 
-    ScaleUp* scaleUp = new ScaleUp(graph, new TIES(graph), scaleUpSamplesInfo, userInput->getOutputGraphPath());
+    ScaleUp* scaleUp = new ScaleUp(graph, userInput->getSamplingAlgorithm(graph), scaleUpSamplesInfo, userInput->getOutputGraphPath());
     scaleUp->run();
 
     delete(scaleUp);
@@ -23,7 +23,7 @@ void Scaling::scaleUp() {
 }
 
 void Scaling::scaleDown() {
-    Sampling* sampling = new TIES(graph);
+    Sampling* sampling = userInput->getSamplingAlgorithm(graph);
     sampling->run(userInput->getSamplingFraction(), userInput->getOutputGraphPath());
 
     delete(sampling);
