@@ -16,6 +16,8 @@ Graph* RandomEdge::sample(float fraction) {
     Graph* sampledGraph = new Graph(); // TODO: Delete this later
     sampledGraph->setVertices(sampledVertices);
     sampledGraph->setEdges(sampledEdges); // convert to vector or use another vector
+
+    return sampledGraph;
 }
 
 void RandomEdge::edgeSamplingStep(std::unordered_set<long long>& samplesVertices, std::vector<Edge<long long>>& sampledEdges, float fraction) {
