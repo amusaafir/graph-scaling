@@ -13,7 +13,8 @@ UserInputCMD::UserInputCMD(int argc, char* argv[]) {
 }
 
 int UserInputCMD::getScalingType() {
-    bool isScaleUp = inputArguments.size() == 8;
+    const int ARGS_REQUIRED_FOR_SCALING_UP = 9;
+    bool isScaleUp = inputArguments.size() == ARGS_REQUIRED_FOR_SCALING_UP;
 
     return isScaleUp;
 }
