@@ -28,8 +28,11 @@ void RandomEdge::edgeSamplingStep(std::unordered_set<long long>& sampledVertices
     long long edgeSizeOriginalGraph = graph->getEdges().size();
     std::unordered_set<long long> sampledEdgeIndices;
 
+    srand(time(NULL));
+
     while (sampledEdges.size() < preferredEdgesSize) {
-        long long randomEdgeIndex = getRandomIntBetweenRange(0, edgeSizeOriginalGraph - 1);
+        //long long randomEdgeIndex = getRandomIntBetweenRange(0, edgeSizeOriginalGraph - 1);
+        long long randomEdgeIndex = rand() % edgeSizeOriginalGraph;
 
         // Check if the edge (index) has already been sampled before. If it is isn't, collect the edge (and end-vertices).
         if (!sampledEdgeIndices.count(randomEdgeIndex)) {
