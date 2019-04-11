@@ -7,6 +7,7 @@
 #include "../../scaling/scale-down/Sampling.h"
 #include "../../scaling/scale-down/RandomEdge.h"
 #include "../../scaling/scale-down/TIES.h"
+#include "../../scaling/scale-down/RandomNode.h"
 
 UserInputCMD::UserInputCMD(int argc, char* argv[]) {
     insertArgumentValues(argc, argv);
@@ -74,6 +75,8 @@ float UserInputCMD::getScalingFactor() {
 Sampling* UserInputCMD::getSamplingAlgorithm(Graph* graph) {
     if (inputArguments['a'] == "randomedge") {
         return new RandomEdge(graph);
+    } else if (inputArguments['a'] == "randomnode") {
+        return new RandomNode(graph);
     }
 
     return new TIES(graph);

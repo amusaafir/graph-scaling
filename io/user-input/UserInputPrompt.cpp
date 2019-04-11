@@ -6,6 +6,7 @@
 #include "../../scaling/scale-up/bridge/HighDegreeBridge.h"
 #include "../../scaling/scale-down/TIES.h"
 #include "../../scaling/scale-down/RandomEdge.h"
+#include "../../scaling/scale-down/RandomNode.h"
 
 UserInputPrompt::UserInputPrompt() {
 
@@ -107,13 +108,15 @@ float UserInputPrompt::getScalingFactor() {
 }
 
 Sampling* UserInputPrompt::getSamplingAlgorithm(Graph* graph) {
-    std::cout << "Sampling algorithm: [t]ies; [r]andom edge:" << std::endl;
+    std::cout << "Sampling algorithm: [t]ies; random [e]dge; random [n]ode:" << std::endl;
 
     char samplingAlgorithm;
     std::cin >> samplingAlgorithm;
 
     if (samplingAlgorithm == 't') {
         return new TIES(graph);
+    } else if (samplingAlgorithm == 'n') {
+        return new RandomNode(graph);
     }
 
     return new RandomEdge(graph);
