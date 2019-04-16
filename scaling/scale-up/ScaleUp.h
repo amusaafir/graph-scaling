@@ -17,7 +17,6 @@
 class ScaleUp {
 private:
     Graph* graph;
-    Sampling* sampling;
     ScalingUpConfig* scaleUpSamplesInfo;
     std::string outputFolder;
 
@@ -30,7 +29,7 @@ private:
     void createSample(std::vector<Graph*> &samples, float samplingFraction, std::string identifier);
 
 public:
-    ScaleUp(Graph* graph, Sampling* sampling, ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder);
+    ScaleUp(Graph* graph, ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder);
 
     void run();
 };

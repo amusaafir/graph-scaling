@@ -4,10 +4,11 @@
 
 #include "ScalingUpConfig.h"
 
-ScalingUpConfig::ScalingUpConfig(float scalingFactor, float samplingFraction, Topology* topology) {
+ScalingUpConfig::ScalingUpConfig(float scalingFactor, float samplingFraction, Topology* topology, Sampling* samplingAlgorithm) {
     this->scalingFactor = scalingFactor;
     this->samplingFraction = samplingFraction;
     this->topology = topology;
+    this->samplingAlgorithm = samplingAlgorithm;
 
     float rem = (long long)round(scalingFactor * 100) % (long long)round(samplingFraction * 100) / 100.0;
     setRemainder(rem);
@@ -56,4 +57,8 @@ Topology* ScalingUpConfig::getTopology() {
 
 void ScalingUpConfig::setTopology(Topology* topology) {
     this->topology = topology;
+}
+
+Sampling* ScalingUpConfig::getSamplingAlgorithm() {
+    return samplingAlgorithm;
 }

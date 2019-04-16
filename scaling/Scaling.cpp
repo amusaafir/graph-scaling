@@ -13,9 +13,10 @@ Scaling::Scaling(Graph* graph, UserInput* userInput) {
 void Scaling::scaleUp() {
     ScalingUpConfig* scaleUpSamplesInfo = new ScalingUpConfig(userInput->getScalingFactor(),
                                                               userInput->getSamplingFraction(),
-                                                              userInput->getTopology());
+                                                              userInput->getTopology(),
+                                                              userInput->getSamplingAlgorithm(graph));
 
-    ScaleUp* scaleUp = new ScaleUp(graph, userInput->getSamplingAlgorithm(graph), scaleUpSamplesInfo, userInput->getOutputGraphPath());
+    ScaleUp* scaleUp = new ScaleUp(graph, scaleUpSamplesInfo, userInput->getOutputGraphPath());
     scaleUp->run();
 
     delete(scaleUp);

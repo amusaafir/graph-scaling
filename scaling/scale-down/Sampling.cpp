@@ -7,6 +7,8 @@
 
 Sampling::Sampling(Graph* graph, std::string samplingAlgorithmName) {
     this->graph = graph;
+
+    this->samplingAlgorithmName = samplingAlgorithmName;
     std::cout << "Selected " << samplingAlgorithmName << " as sampling algorithm." << std::endl;
 }
 
@@ -42,4 +44,8 @@ Graph* Sampling::getFullGraphCopy() {
     fullCopy->setEdges(graph->getEdges());
 
     return fullCopy;
+}
+
+std::string Sampling::getSamplingAlgorithmName() {
+    return samplingAlgorithmName;
 }

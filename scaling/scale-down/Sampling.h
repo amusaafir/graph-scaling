@@ -14,6 +14,7 @@ class Sampling {
 protected:
     Graph* graph;
     std::random_device seed;
+    std::string samplingAlgorithmName;
 public:
     Sampling(Graph* graph, std::string samplingAlgorithmName);
 
@@ -28,6 +29,8 @@ public:
     void run(float fraction, std::string outputPath);
 
     Graph* getFullGraphCopy();
+
+    std::string getSamplingAlgorithmName();
 };
 
 

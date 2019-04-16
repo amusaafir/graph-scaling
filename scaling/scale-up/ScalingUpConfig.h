@@ -9,6 +9,7 @@
 #include <iostream>
 #include "topology/Topology.h"
 #include "bridge/Bridge.h"
+#include "../scale-down/Sampling.h"
 
 class ScalingUpConfig {
 private:
@@ -17,11 +18,12 @@ private:
     float remainder;
     float scalingFactor;
     float samplingFraction;
+    Sampling* samplingAlgorithm;
 
     void determineAdditionalSampling();
 
 public:
-    ScalingUpConfig(float scalingFactor, float samplingFraction, Topology* topology);
+    ScalingUpConfig(float scalingFactor, float samplingFraction, Topology* topology, Sampling* samplingAlgorithm);
 
     bool hasSamplingRemainder() const;
 
@@ -40,6 +42,8 @@ public:
     Topology* getTopology();
 
     void setTopology(Topology* topology);
+
+    Sampling* getSamplingAlgorithm();
 };
 
 

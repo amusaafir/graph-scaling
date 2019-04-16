@@ -15,6 +15,8 @@ public:
     Bridge(long long numberOfInterconnections, bool addDirectedBridges);
     virtual void addBridgesBetweenGraphs(Graph *sourceGraph, Graph *targetGraph, std::vector<Edge<std::string>>& bridges) = 0;
     virtual std::string getName() = 0;
+
+    long long getNumberOfInterconnections();
 };
 
 

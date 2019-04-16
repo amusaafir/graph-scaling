@@ -27,10 +27,17 @@ std::string WriteScaledUpGraph::getFileName() {
     samplingFractionStream << std::fixed << std::setprecision(2) << this->scalingUpConfig->getSamplingFraction();
     scalingFactorStream << std::fixed << std::setprecision(2) << this->scalingUpConfig->getScalingFactor();
 
-    std::string filename = "expanded_graph_"
-                                    + samplingFractionStream.str() + "_"
-                                    + scalingFactorStream.str() + "_"
+    std::string samplingFractionFormat = samplingFractionStream.str();
+    std::string scalingFactorFormat = scalingFactorStream.str();
+
+    samplingFractionFormat = samplingFractionFormat.replace(samplingFractionFormat.find("."), 1, "-");
+    scalingFactorFormat = scalingFactorFormat.replace(scalingFactorFormat.find("."), 1, "-");
+
+    std::string filename = "up_" + scalingUpConfig->getSamplingAlgorithm()->getSamplingAlgorithmName() + "_"
+                                    + samplingFractionFormat + "_"
+                                    + scalingFactorFormat + "_"
                                     + this->scalingUpConfig->getTopology()->getName() + "_"
+                                    + std::to_string(this->scalingUpConfig->getTopology()->getBridge()->getNumberOfInterconnections())
                                     + this->scalingUpConfig->getTopology()->getBridge()->getName();
 
     return filename + OUTPUT_EXTENSION;

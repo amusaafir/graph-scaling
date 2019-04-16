@@ -5,9 +5,8 @@
 #include "ScaleUp.h"
 #include "auto-tuner/Autotuner.h"
 
-ScaleUp::ScaleUp(Graph* graph, Sampling* sampling, ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder) {
+ScaleUp::ScaleUp(Graph* graph, ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder) {
     this->graph = graph;
-    this->sampling = sampling;
     this->scaleUpSamplesInfo = scaleUpSamplesInfo;
     this->outputFolder = outputFolder;
 }
@@ -72,7 +71,7 @@ std::vector<Graph*> ScaleUp::createDistinctSamples() {
 }
 
 void ScaleUp::createSample(std::vector<Graph*> &samples, float samplingFraction, std::string identifier) {
-    Graph* sampledGraph = sampling->sample(samplingFraction);
+    Graph* sampledGraph = scaleUpSamplesInfo->getSamplingAlgorithm()->sample(samplingFraction);
     sampledGraph->setIdentifier(identifier);
     samples.push_back(sampledGraph);
 }
