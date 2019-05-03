@@ -50,7 +50,7 @@ To directly perform a **scaling up** operation, the following parameters are req
 - Force directed bridges **`-d`**. Setting this to true would add directed bridges.
 
 **Example scaling up:**
-`./graph_scaling_tool -i /home/user/graph.txt -o /home/user/graph_output -u 3.0 -s 0.5 -d false -n 10 -b random -t star
+`./graph_scaling_tool -i /home/user/graph.txt -o /home/user/graph_output -u 3.0 -s 0.5 -a ties -d false -n 10 -b random -t star
 `
 
 ### Parallel & distributed
