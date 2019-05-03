@@ -34,8 +34,8 @@ To perform one of the two operations directly, the user must specify at least:
 - The input graph path: **`-i`** (e.g., `-i /home/user/graph.csv`). Note that this can be any format, as long as the input graph is an edge list (where each vertex is represented numerically)
 - The output (folder) path: **`-o`** (e.g., `-o /home/user/`)
 
-
-To directly perform a **scaling down** operation, the **`-s`** parameter is required to specify the preferred sample size (based on the number of vertices). This parameter should be between 0 and 1. 
+To directly perform a **scaling down** operation, the **`-s`** parameter is required to specify the preferred sample size (based on the number of vertices). This parameter should be between 0 and 1.
+By default, TIES is used as sampling algorithm. This can be changed by adding the **`-a`** option with `randomedge`, `randomnode` or `ties`
 
 **Example scaling down:** `./graph_scaling_tool -i /home/user/graph.txt -o /home/user/graph_output -s 0.4`
 
@@ -43,6 +43,7 @@ To directly perform a **scaling up** operation, the following parameters are req
 
 - Scaling factor **`-u`** (based on the number of vertices)
 - Sample size **`-s`** for each sampled graph. This value should be between 0 and 1.
+- Sampling algorithm **`-a`** either:  `ties`, `randomedge`, `randomnode`
 - Topology **`-t`** either: `star`, `chain`, `ring` or `fullyconnected`
 - Bridging type **`-b`**, either: `random` or `high` (degrees)
 - Number of interconnections between each sample: **`-n`**
@@ -51,7 +52,6 @@ To directly perform a **scaling up** operation, the following parameters are req
 **Example scaling up:**
 `./graph_scaling_tool -i /home/user/graph.txt -o /home/user/graph_output -u 3.0 -s 0.5 -d false -n 10 -b random -t star
 `
-
 
 ### Parallel & distributed
 
