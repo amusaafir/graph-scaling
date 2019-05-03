@@ -37,7 +37,7 @@ To perform one of the two operations directly, the user must specify at least:
 To directly perform a **scaling down** operation, the **`-s`** parameter is required to specify the preferred sample size (based on the number of vertices). This parameter should be between 0 and 1.
 By default, TIES is used as sampling algorithm. This can be changed by adding the **`-a`** option with `randomedge`, `randomnode` or `ties`
 
-**Example scaling down:** `./graph_scaling_tool -i /home/user/graph.txt -o /home/user/graph_output -s 0.4`
+**Example scaling down:** `./graph_scaling_tool -i /home/user/graph.txt -o /home/user/graph_output -s 0.4 -a ties`
 
 To directly perform a **scaling up** operation, the following parameters are required:
 
