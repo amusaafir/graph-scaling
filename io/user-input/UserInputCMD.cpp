@@ -8,6 +8,7 @@
 #include "../../scaling/scale-down/RandomEdge.h"
 #include "../../scaling/scale-down/TIES.h"
 #include "../../scaling/scale-down/RandomNode.h"
+#include "../../scaling/scale-down/ForestFire.h"
 
 UserInputCMD::UserInputCMD(int argc, char* argv[]) {
     insertArgumentValues(argc, argv);
@@ -77,6 +78,8 @@ Sampling* UserInputCMD::getSamplingAlgorithm(Graph* graph) {
         return new RandomEdge(graph);
     } else if (inputArguments['a'] == "randomnode") {
         return new RandomNode(graph);
+    } else if (inputArguments['a'] == "forestfire") {
+        return new ForestFire(graph, 0);
     }
 
     return new TIES(graph);

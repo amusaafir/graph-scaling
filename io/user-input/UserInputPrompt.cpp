@@ -7,6 +7,7 @@
 #include "../../scaling/scale-down/TIES.h"
 #include "../../scaling/scale-down/RandomEdge.h"
 #include "../../scaling/scale-down/RandomNode.h"
+#include "../../scaling/scale-down/ForestFire.h"
 
 UserInputPrompt::UserInputPrompt() {
 
@@ -108,7 +109,7 @@ float UserInputPrompt::getScalingFactor() {
 }
 
 Sampling* UserInputPrompt::getSamplingAlgorithm(Graph* graph) {
-    std::cout << "Sampling algorithm: [t]ies; random [e]dge; random [n]ode:" << std::endl;
+    std::cout << "Sampling algorithm: [t]ies; random [e]dge; random [n]ode; [f]orest fire:" << std::endl;
 
     char samplingAlgorithm;
     std::cin >> samplingAlgorithm;
@@ -117,6 +118,8 @@ Sampling* UserInputPrompt::getSamplingAlgorithm(Graph* graph) {
         return new TIES(graph);
     } else if (samplingAlgorithm == 'n') {
         return new RandomNode(graph);
+    } else if (samplingAlgorithm == 'f') {
+        return new ForestFire(graph, 0);
     }
 
     return new RandomEdge(graph);
