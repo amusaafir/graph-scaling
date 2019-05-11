@@ -58,7 +58,7 @@ Graph* ForestFire::sample(float fraction) {
 
         queue.push(sourceVertex);
 
-        long long desiredNumberOfEdges = (isUndirected) ? graph->getEdges().size() * 2 * fraction : graph->getEdges().size() * fraction;
+        long long desiredNumberOfEdges = (isUndirected) ? graph->getEdges().size() * fraction : graph->getEdges().size() * fraction;
 
         std::unordered_map<long long, std::vector<long long>> adjacencyList = graph->getAdjacencyList();
 
@@ -86,27 +86,19 @@ Graph* ForestFire::sample(float fraction) {
                     break;
                 }
 
-                uniqueSampledEdgesSet.insert(std::pair<long long, long long>(sourceVertex, targetVertex));
 
                 if (isUndirected) {
-                    uniqueSampledEdgesSet.insert(std::pair<long long, long long>(targetVertex, sourceVertex));
+                    if (!uniqueSampledEdgesSet.count(std::pair<long long, long long>(targetVertex, sourceVertex))) {
+                        uniqueSampledEdgesSet.insert(std::pair<long long, long long>(sourceVertex, targetVertex));
+                    }
+                } else {
+                    uniqueSampledEdgesSet.insert(std::pair<long long, long long>(sourceVertex, targetVertex));
                 }
             }
         }
 
         sourceVertex = graph->getEdges()[getRandomIntBetweenRange(0, graph->getEdges().size() - 1)].getSource();
 
-    }
-
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
-    if (isUndirected) {
-        std::cout << "Finished performing Forest Fire: "
-                "collected " << sampledVertices.size() << " sampled vertices and " <<  uniqueSampledEdgesSet.size()  << " edges (" << uniqueSampledEdgesSet.size() / 2  << " unique undirected edges)" << std::endl;
-    } else {
-        std::cout << "Finished performing Forest Fire: "
-                "collected " << sampledVertices.size() << " sampled vertices and " << uniqueSampledEdgesSet.size()
-                  << " edges." << std::endl;
     }
 
     sourceVertex = -1; // Reset for further samples
@@ -116,6 +108,12 @@ Graph* ForestFire::sample(float fraction) {
     for (std::pair<long long, long  long> e : uniqueSampledEdgesSet) {
         sampledEdges.push_back(Edge<long long> (e.first, e.second));
     }
+
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::cout << "Time elapsed - edge sampling: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" <<std::endl;
+    std::cout << "Finished performing Forest Fire: "
+            "collected " << sampledVertices.size() << " sampled vertices and " << uniqueSampledEdgesSet.size()
+              << " edges." << std::endl;
 
     Graph* sampledGraph = new Graph(); // TODO: Delete this later
     sampledGraph->setVertices(sampledVertices);
