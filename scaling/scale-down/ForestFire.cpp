@@ -87,6 +87,8 @@ Graph* ForestFire::sample(float fraction) {
                 }
 
 
+                //sampledVertices.insert(targetVertex);
+
                 if (isUndirected) {
                     if (!uniqueSampledEdgesSet.count(std::pair<long long, long long>(targetVertex, sourceVertex))) {
                         uniqueSampledEdgesSet.insert(std::pair<long long, long long>(sourceVertex, targetVertex));
@@ -96,17 +98,30 @@ Graph* ForestFire::sample(float fraction) {
                 }
             }
         }
+/*
+        if (!queue.empty()) {
+            std::cout << "Adding " << sampledVertices.size() << " remaining vertices to the sampled set." << std::endl;
 
+            while (!queue.empty()) {
+                long long v = queue.front();
+                sampledVertices.insert(v);
+                queue.pop();
+            }
+        }
+*/
         sourceVertex = graph->getEdges()[getRandomIntBetweenRange(0, graph->getEdges().size() - 1)].getSource();
-
     }
 
     sourceVertex = -1; // Reset for further samples
+
+    sampledVertices.clear();
 
     // Convert edge set to vector
     std::vector<Edge<long long>> sampledEdges;
     for (std::pair<long long, long  long> e : uniqueSampledEdgesSet) {
         sampledEdges.push_back(Edge<long long> (e.first, e.second));
+        sampledVertices.insert(e.first);
+        sampledVertices.insert(e.second);
     }
 
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
