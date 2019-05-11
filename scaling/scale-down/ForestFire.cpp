@@ -110,7 +110,7 @@ Graph* ForestFire::sample(float fraction) {
     }
 
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::cout << "Time elapsed - edge sampling: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" <<std::endl;
+    std::cout << "Time elapsed - forest fire sampling: " << std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << " ms" <<std::endl;
     std::cout << "Finished performing Forest Fire: "
             "collected " << sampledVertices.size() << " sampled vertices and " << uniqueSampledEdgesSet.size()
               << " edges." << std::endl;
