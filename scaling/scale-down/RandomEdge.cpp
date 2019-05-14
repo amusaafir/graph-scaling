@@ -26,26 +26,58 @@ void RandomEdge::edgeSamplingStep(std::unordered_set<long long>& sampledVertices
 
     long long preferredEdgesSize = graph->getEdges().size() * fraction;
     long long edgeSizeOriginalGraph = graph->getEdges().size();
-    std::unordered_set<long long> sampledEdgeIndices;
 
-    srand(time(NULL));
+    if (isInputGraphInBothDirections) {
+        std::set<std::pair<long long, long long>> uniqueEdges;
 
-    while (sampledEdges.size() < preferredEdgesSize) {
-        //long long randomEdgeIndex = getRandomIntBetweenRange(0, edgeSizeOriginalGraph - 1);
-        long long randomEdgeIndex = rand() % edgeSizeOriginalGraph;
+        srand(time(NULL));
 
-        // Check if the edge (index) has already been sampled before. If it is isn't, collect the edge (and end-vertices).
-        if (!sampledEdgeIndices.count(randomEdgeIndex)) {
+        while (uniqueEdges.size() < preferredEdgesSize) {
+            //long long randomEdgeIndex = getRandomIntBetweenRange(0, edgeSizeOriginalGraph - 1);
+            long long randomEdgeIndex = rand() % edgeSizeOriginalGraph;
+
+            // Check if the edge (index) has already been sampled before. If it is isn't, collect the edge (and end-vertices).
             Edge<long long int> edge = graph->getEdges()[randomEdgeIndex];
-            // Collect vertices
-            sampledVertices.insert(edge.getSource());
-            sampledVertices.insert(edge.getTarget());
 
-            // Collect edge
-            sampledEdges.push_back(edge);
+            std::pair<long long, long long> s_t(edge.getSource(), edge.getTarget());
+            std::pair<long long, long long> t_s(edge.getTarget(), edge.getSource());
 
-            // Add sampled edge
-            sampledEdgeIndices.insert(randomEdgeIndex);
+            if (!uniqueEdges.count(s_t) && !uniqueEdges.count(t_s)) {
+
+                // Collect vertices
+                sampledVertices.insert(edge.getSource());
+                sampledVertices.insert(edge.getTarget());
+
+                // Collect edge
+                sampledEdges.push_back(edge);
+
+                // Add sampled edge
+                uniqueEdges.insert(s_t);
+                uniqueEdges.insert(t_s);
+            }
+        }
+    } else {
+        std::unordered_set<long long> sampledEdgeIndices;
+
+        srand(time(NULL));
+
+        while (sampledEdges.size() < preferredEdgesSize) {
+            //long long randomEdgeIndex = getRandomIntBetweenRange(0, edgeSizeOriginalGraph - 1);
+            long long randomEdgeIndex = rand() % edgeSizeOriginalGraph;
+
+            // Check if the edge (index) has already been sampled before. If it is isn't, collect the edge (and end-vertices).
+            if (!sampledEdgeIndices.count(randomEdgeIndex)) {
+                Edge<long long int> edge = graph->getEdges()[randomEdgeIndex];
+                // Collect vertices
+                sampledVertices.insert(edge.getSource());
+                sampledVertices.insert(edge.getTarget());
+
+                // Collect edge
+                sampledEdges.push_back(edge);
+
+                // Add sampled edge
+                sampledEdgeIndices.insert(randomEdgeIndex);
+            }
         }
     }
 

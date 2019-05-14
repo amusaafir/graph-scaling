@@ -9,6 +9,7 @@
 #include "UserInput.h"
 #include "../../scaling/scale-up/bridge/RandomBridge.h"
 
+// TODO: Redundant class, get rid of it.
 class UserInputPrompt : public UserInput {
 public:
 

@@ -9,13 +9,18 @@
 #include <chrono>
 #include "Sampling.h"
 #include <unordered_map>
+#include <set>
+#include <assert.h>
 
 class RandomEdge : public Sampling {
 private:
+    bool isInputGraphInBothDirections;
     void edgeSamplingStep(std::unordered_set<long long>& samplesVertices, std::vector<Edge<long long>>& sampledEdges, float fraction);
 
 public:
-    RandomEdge(Graph* graph) : Sampling(graph, "RandomEdge") { };
+    RandomEdge(Graph* graph, bool isInputGraphInBothDirections) : Sampling(graph, "RandomEdge") {
+        this->isInputGraphInBothDirections = isInputGraphInBothDirections;
+    };
     Graph* sample(float fraction);
 };
 

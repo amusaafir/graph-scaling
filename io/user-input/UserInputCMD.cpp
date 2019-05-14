@@ -74,9 +74,11 @@ float UserInputCMD::getScalingFactor() {
 
 Sampling* UserInputCMD::getSamplingAlgorithm(Graph* graph) {
     if (inputArguments['a'] == "randomedge") {
-        return new RandomEdge(graph);
+        return new RandomEdge(graph, false);
     } else if (inputArguments['a'] == "randomnode") {
         return new RandomNode(graph);
+    } else if (inputArguments['a'] == "randomedge_both_directions") {
+        return new RandomEdge(graph, true);
     }
 
     return new TIES(graph);

@@ -119,5 +119,5 @@ Sampling* UserInputPrompt::getSamplingAlgorithm(Graph* graph) {
         return new RandomNode(graph);
     }
 
-    return new RandomEdge(graph);
+    return new RandomEdge(graph, false);
 }
