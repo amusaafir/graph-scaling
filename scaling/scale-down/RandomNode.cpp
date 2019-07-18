@@ -6,10 +6,6 @@
 #include "RandomNode.h"
 
 Graph* RandomNode::sample(float fraction) {
-    if (fraction == 1.0) {
-        return getFullGraphCopy();
-    }
-
     std::unordered_set<long long> sampledVertices;
     samplingStep(sampledVertices, fraction);
 

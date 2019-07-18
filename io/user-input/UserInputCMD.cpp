@@ -82,9 +82,10 @@ Sampling* UserInputCMD::getSamplingAlgorithm(Graph* graph) {
     } else if (inputArguments['a'] == "randomedge_both_directions") {
         return new RandomEdge(graph, true);
     } else if (inputArguments['a'] == "forestfire") {
-        std::cout << "Source vertex: " << stoi(inputArguments['v']) << std::endl;
+        int sourceVertex = stoi(inputArguments['v']);
+        std::cout << "Source vertex: " << sourceVertex << std::endl;
 
-        return new ForestFire(graph, 0);
+        return new ForestFire(graph, sourceVertex);
     }
 
     return new TIES(graph);

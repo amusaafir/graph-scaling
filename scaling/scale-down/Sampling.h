@@ -15,10 +15,12 @@ protected:
     Graph* graph;
     std::random_device seed;
     std::string samplingAlgorithmName;
+
+    virtual Graph* sample(float fraction) = 0;
 public:
     Sampling(Graph* graph, std::string samplingAlgorithmName);
 
-    virtual Graph* sample(float fraction) = 0;
+    Graph* sampleBase(float fraction);
 
     long long getNumberOfVerticesFromFraction(float fraction);
 

@@ -5,10 +5,6 @@
 #include "RandomEdge.h"
 
 Graph* RandomEdge::sample(float fraction) {
-    if (fraction == 1.0) {
-        return getFullGraphCopy();
-    }
-
     std::unordered_set<long long> sampledVertices;
     std::vector<Edge<long long>> sampledEdges;
     edgeSamplingStep(sampledVertices, sampledEdges, fraction);

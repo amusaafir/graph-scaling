@@ -12,6 +12,14 @@ Sampling::Sampling(Graph* graph, std::string samplingAlgorithmName) {
     std::cout << "Selected " << samplingAlgorithmName << " as sampling algorithm." << std::endl;
 }
 
+Graph* Sampling::sampleBase(float fraction) {
+    if (fraction == 1.0) {
+        return getFullGraphCopy();
+    }
+
+    return sample(fraction);
+}
+
 long long Sampling::getNumberOfVerticesFromFraction(float fraction) {
     return this->graph->getVertices().size() * fraction;
 }
@@ -28,7 +36,7 @@ long long Sampling::getRandomIntBetweenRange(long long min, long long max) {
 }
 
 void Sampling::run(float fraction, std::string outputPath) {
-    Graph* graph = sample(fraction);
+    Graph* graph = sampleBase(fraction);
 
     WriteGraph* writeSampledGraph = new WriteSampledGraph(graph, outputPath, fraction); // TODO: Delete this later.
     writeSampledGraph->write();

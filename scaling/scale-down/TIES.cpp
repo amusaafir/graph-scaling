@@ -10,10 +10,6 @@
  * @param fraction: from the total amount of vertices.
  */
 Graph* TIES::sample(float fraction) {
-    if (fraction == 1.0) {
-        return getFullGraphCopy();
-    }
-
     std::unordered_set<long long> sampledVertices;
     edgeBasedNodeSamplingStep(sampledVertices, fraction);
 

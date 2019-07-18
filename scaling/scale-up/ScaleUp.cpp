@@ -71,7 +71,7 @@ std::vector<Graph*> ScaleUp::createDistinctSamples() {
 }
 
 void ScaleUp::createSample(std::vector<Graph*> &samples, float samplingFraction, std::string identifier) {
-    Graph* sampledGraph = scaleUpSamplesInfo->getSamplingAlgorithm()->sample(samplingFraction);
+    Graph* sampledGraph = scaleUpSamplesInfo->getSamplingAlgorithm()->sampleBase(samplingFraction);
     sampledGraph->setIdentifier(identifier);
     samples.push_back(sampledGraph);
 }

@@ -15,10 +15,6 @@
  * @return
  */
 Graph* ForestFire::sample(float fraction) {
-    if (fraction == 1.0) {
-        return getFullGraphCopy();
-    }
-
     std::cout << "Performing forest fire." << std::endl;
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
