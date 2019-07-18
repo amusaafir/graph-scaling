@@ -8,16 +8,18 @@
 #include "../../scaling/scale-down/RandomEdge.h"
 #include "../../scaling/scale-down/TIES.h"
 #include "../../scaling/scale-down/RandomNode.h"
+#include "../../scaling/scale-down/ForestFire.h"
 
 UserInputCMD::UserInputCMD(int argc, char* argv[]) {
     insertArgumentValues(argc, argv);
 }
 
+/**
+ *
+ * @return true if scaling up operation
+ */
 int UserInputCMD::getScalingType() {
-    const int ARGS_REQUIRED_FOR_SCALING_UP = 9;
-    bool isScaleUp = inputArguments.size() == ARGS_REQUIRED_FOR_SCALING_UP;
-
-    return isScaleUp;
+    return inputArguments.size() == 9 || inputArguments.size() == 10;
 }
 
 std::string UserInputCMD::getInputGraphPath() {
@@ -79,6 +81,10 @@ Sampling* UserInputCMD::getSamplingAlgorithm(Graph* graph) {
         return new RandomNode(graph);
     } else if (inputArguments['a'] == "randomedge_both_directions") {
         return new RandomEdge(graph, true);
+    } else if (inputArguments['a'] == "forestfire") {
+        std::cout << "Source vertex: " << stoi(inputArguments['v']) << std::endl;
+
+        return new ForestFire(graph, 0);
     }
 
     return new TIES(graph);
@@ -87,7 +93,7 @@ Sampling* UserInputCMD::getSamplingAlgorithm(Graph* graph) {
 void UserInputCMD::insertArgumentValues(int argc, char* argv[]) {
     int opt;
 
-    while ((opt = getopt (argc, argv, "i:o:s:u:t:n:d:b:a:")) != -1) {
+    while ((opt = getopt (argc, argv, "i:o:s:u:t:n:d:b:a:v:")) != -1) {
         if (!inputArguments.count(opt)) { // TODO: init map and check if it exists
             inputArguments[opt] = optarg;
         } else {

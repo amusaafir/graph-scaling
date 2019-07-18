@@ -3,6 +3,7 @@
 #ifndef GRAPH_SCALING_TOOL_GRAPH_H
 #define GRAPH_SCALING_TOOL_GRAPH_H
 
+#include <unordered_map>
 #include <vector>
 #include <unordered_set>
 #include "Edge.h"
@@ -13,6 +14,7 @@ private:
     std::unordered_set<long long> vertices;
     std::vector<Edge<long long>> edges;
     std::vector<long long> highDegreeVertices;
+    std::unordered_map<long long, std::vector<long long>> adjacencyList;
 
 public:
     void addVertex(long long vertex);
@@ -32,6 +34,12 @@ public:
     void setIdentifier(const std::string &identifier);
 
     std::vector<long long> &getHighDegreeVertices();
+
+    void createAdjacencyList();
+
+    void addEdgeToAdjacencyList(long long int source, long long int target);
+
+    const std::unordered_map<long long, std::vector<long long>> &getAdjacencyList() const;
 };
 
 
