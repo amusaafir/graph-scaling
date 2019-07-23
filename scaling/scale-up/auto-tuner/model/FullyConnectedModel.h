@@ -1,0 +1,14 @@
+//
+// Created by aj on 22-7-19.
+//
+
+#ifndef GRAPH_SCALING_TOOL_FULLYCONNECTEDMODEL_H
+#define GRAPH_SCALING_TOOL_FULLYCONNECTEDMODEL_H
+
+
+class FullyConnectedModel {
+
+};
+
+
+#endif //GRAPH_SCALING_TOOL_FULLYCONNECTEDMODEL_H
