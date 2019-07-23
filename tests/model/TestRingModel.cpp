@@ -3,10 +3,10 @@
 //
 
 #include <gtest/gtest.h>
-#include "../../scaling/scale-up/auto-tuner/model/ChainModel.h"
+#include "../../scaling/scale-up/auto-tuner/model/RingModel.h"
 
-TEST(ChainModel, testMaxDiameter) {
-ChainModel chainModel(8, 6, 3);
+TEST(RingModel, testMaxDiameter) {
+    RingModel ringModel(8, 6, 3);
 
-ASSERT_EQ(chainModel.getMaxDiameter(), 53);
+ASSERT_EQ(ringModel.getMaxDiameter(), 54);
 }

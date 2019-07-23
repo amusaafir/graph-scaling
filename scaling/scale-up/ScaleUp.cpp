@@ -16,16 +16,31 @@ void ScaleUp::run() {
 
     std::vector<Graph*> samples = createDistinctSamples();
 
-    bool isAutotunerEnabled = false; // TODO: Add to user input
+    bool isAutotunerEnabled = true; // TODO: Add to user input
 
     std::vector<Edge<std::string>> bridges;
 
     if (isAutotunerEnabled) {
-        //Autotuner* autotuner = new Autotuner(graph, samples);
+        std::cout << "Starting auto tuner." << std::endl;
 
-        GraphAnalyser* graphAnalyser= new GraphAnalyser();
+        //Autotuner* autotuner = new Autotuner(graph, samples);
+        const int MAX_ITERATION = 5;
+        int targetDiameter = 16; // Should be obtained from the original graph
+
+        /*
+          We'll assume here that the original graph is analysed and the diameter is known.
+          The diameter of the test (facebook) graph is 8. Let's assume that the sampling algorithm preserves this
+          number correctly for >=0.8 samples.
+         */
+        GraphAnalyser* graphAnalyser = new GraphAnalyser();
 
         graphAnalyser->loadGraph(samples, scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples));
+
+        int currentIteration = 0;
+
+        while (currentIteration < MAX_ITERATION) {
+            std::cout << "Current iteration: " << currentIteration + 1 << "/" << MAX_ITERATION << std::endl;
+        }
 
         //delete(autotuner);
         delete(graphAnalyser);

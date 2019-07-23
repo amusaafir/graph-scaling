@@ -13,7 +13,6 @@ void GraphAnalyser::loadGraph(std::vector<Graph*> samples, std::vector<Edge<std:
     }
 
     graph = TUNGraph::New();
-    std::unordered_map<std::string, int> map_from_edge_to_coordinate;
     int coordinate = 0;
 
     for (long long i =0; i < samples.size(); i++) {
@@ -78,5 +77,17 @@ void GraphAnalyser::loadGraph(std::vector<Graph*> samples, std::vector<Edge<std:
     }
 
     std::cout  << "Number of nodes in scaled up graph: " << graph->GetNodes() << std::endl;
+}
+
+
+void GraphAnalyser::deleteBridges(std::vector<Edge<std::string>>& bridges) {
+    for (int i = 0; i < bridges.size(); i++) {
+        deleteEdge(bridges[i]);
+    }
+}
+
+
+void GraphAnalyser::deleteEdge(Edge<std::string> edge) {
+    graph->DelEdge(map_from_edge_to_coordinate[edge.getSource()], map_from_edge_to_coordinate[edge.getTarget()]);
 }
 

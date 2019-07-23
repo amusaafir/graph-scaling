@@ -1,5 +1,16 @@
 //
-// Created by aj on 22-7-19.
+// Created by Ahmed on 22-7-19.
 //
 
 #include "StarModel.h"
+
+StarModel::StarModel(int originalDiameter, int numberOfSamples, float scalingFactor)
+        : Model(originalDiameter, numberOfSamples, scalingFactor) {}
+
+int StarModel::getMaxDiameter() {
+    return 3 * originalDiameter + 2;
+}
+
+std::string StarModel::getName() {
+    return "StarModel";
+}
