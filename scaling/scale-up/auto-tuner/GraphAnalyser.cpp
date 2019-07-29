@@ -14,6 +14,7 @@ void GraphAnalyser::loadGraph(std::vector<Graph*> samples, std::vector<Edge<std:
 
     graph = TUNGraph::New();
     int coordinate = 0;
+    std::unordered_map<std::string, int> map_from_edge_to_coordinate;
 
     for (long long i =0; i < samples.size(); i++) {
         std::string graphIdentifier = samples[i]->getIdentifier();
@@ -80,14 +81,12 @@ void GraphAnalyser::loadGraph(std::vector<Graph*> samples, std::vector<Edge<std:
 }
 
 
-void GraphAnalyser::deleteBridges(std::vector<Edge<std::string>>& bridges) {
-    for (int i = 0; i < bridges.size(); i++) {
-        deleteEdge(bridges[i]);
-    }
+int GraphAnalyser::calculateDiameter() {
+    return TSnap::GetBfsFullDiam(graph, DIAMETER_TEST_NODES);
 }
 
+bool GraphAnalyser::deleteGraph() {
+    graph->Clr();
 
-void GraphAnalyser::deleteEdge(Edge<std::string> edge) {
-    graph->DelEdge(map_from_edge_to_coordinate[edge.getSource()], map_from_edge_to_coordinate[edge.getTarget()]);
+    return graph->Empty();
 }
-

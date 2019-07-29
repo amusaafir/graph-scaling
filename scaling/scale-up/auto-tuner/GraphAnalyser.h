@@ -11,16 +11,16 @@
 #include "../../../graph/Graph.h"
 
 class GraphAnalyser {
+    const int DIAMETER_TEST_NODES = 50;
     PUNGraph graph;
-    std::unordered_map<std::string, int> map_from_edge_to_coordinate;
 public:
     GraphAnalyser();
 
     void loadGraph(std::vector<Graph*> samples, std::vector<Edge<std::string>> bridges);
 
-    void deleteBridges(std::vector<Edge<std::string>>& bridges);
+    int calculateDiameter();
 
-    void deleteEdge(Edge<std::string> edge);
+    bool deleteGraph();
 };
 
 

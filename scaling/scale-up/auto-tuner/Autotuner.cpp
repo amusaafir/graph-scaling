@@ -27,17 +27,59 @@ Autotuner::Autotuner(int originalDiameter, int numberOfSamples) {
 }
 
 SuggestedParameters Autotuner::tuneDiameter() {
-    // Build initial diameter tree
-    for (int i = 0; i < sizeof(topologies) / sizeof(topologies[0]); i++) {
-        SuggestedParameters suggestedParameters;
-        suggestedParameters.topology = topologies[i]->createTopology(new RandomBridge(1, false));
+    std::cout << "Tuning diameter:" << std::endl;
 
-        if (diameterRoot == NULL) {
-            diameterRoot = new Node<int>(topologies[i]->getMaxDiameter(), suggestedParameters);
-        } else {
-            diameterRoot->addNode(topologies[i]->getMaxDiameter(), suggestedParameters);
+    if (diameterRoot == NULL) {
+        // Build initial diameter tree
+        std::cout << "Building initial diameter tree.." << std::endl;
+
+        for (int i = 0; i < sizeof(topologies) / sizeof(topologies[0]); i++) {
+            SuggestedParameters suggestedParameters;
+            suggestedParameters.topology = topologies[i]->createTopology(new RandomBridge(1, false));
+
+            if (diameterRoot == NULL) {
+                diameterRoot = new Node<int>(topologies[i]->getMaxDiameter(), suggestedParameters);
+            } else {
+                diameterRoot->addNode(topologies[i]->getMaxDiameter(), suggestedParameters);
+            }
         }
+
+        std::cout << "Finished building diameter tree." << std::endl;
     }
 
+    // Check if a given new node is not empty and
+
     diameterRoot->printPreorderFromCurrentNode();
+
+    return findClosestMatch();
+}
+
+void Autotuner::addNodeToDiameterTree(int diameter, SuggestedParameters suggestedParameters) {
+    std::cout << "Adding node to diameter tree.." << std::endl;
+
+    if (diameterRoot == NULL) {
+        diameterRoot = new Node<int>(diameter, suggestedParameters);
+    } else {
+        diameterRoot->addNode(diameter, suggestedParameters);
+    }
+
+    // Check if a given new node is not empty and
+
+    std::cout << "Current diameter tree: " << std::endl;
+
+    diameterRoot->printPreorderFromCurrentNode();
+}
+
+
+SuggestedParameters Autotuner::findClosestMatch() {
+    SuggestedParameters currentClosestDiameter;
+
+
+}
+
+bool Autotuner::isInsideDiameterMargin(int currentDiameter) {
+    const float MARGIN = 0.2;
+    const float real = originalDiameter / currentDiameter;
+
+    return real <= MARGIN;
 }

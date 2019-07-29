@@ -15,7 +15,7 @@ int RingModel::getMaxDiameter() {
         diameter += originalDiameter;
     }
 
-    return diameter;
+    return diameter / 2; // Heuristic
 }
 
 std::string RingModel::getName() {

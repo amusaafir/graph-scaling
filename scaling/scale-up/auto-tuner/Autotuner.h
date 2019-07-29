@@ -20,13 +20,16 @@ private:
     Model* topologies[4] = {};
     Bridge* bridge;
     int originalDiameter;
-    Node<int>* diameterRoot;
+    Node<int>* diameterRoot = NULL;
     int numberOfSampes = 0;
     int iterations; // Number of attempts to find a proper scaled up match
 
 public:
     Autotuner(int originalDiameter, int numberOfSamples);
     SuggestedParameters tuneDiameter();
+    SuggestedParameters findClosestMatch();
+    bool isInsideDiameterMargin(int currentDiameter);
+    void addNodeToDiameterTree(int diameter, SuggestedParameters suggestedParameters);
 };
 
 

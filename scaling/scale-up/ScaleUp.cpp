@@ -24,24 +24,39 @@ void ScaleUp::run() {
         std::cout << "Starting auto tuner." << std::endl;
 
         Autotuner* autotuner = new Autotuner(8, 6);
-        const int MAX_ITERATION = 1;
+        const int MAX_ITERATION = 2;
         int targetDiameter = 16; // Should be obtained from the original graph
 
         /*
           We'll assume here that the original graph is analysed and the diameter is known.
           The diameter of the test (facebook) graph is 8. Let's assume that the sampling algorithm preserves this
-          number correctly for >=0.8 samples.
+          number correctly for >=0.5 samples, using a scaling factor of 3 (nr. of samples = 6).
          */
         GraphAnalyser* graphAnalyser = new GraphAnalyser();
 
-        //graphAnalyser->loadGraph(samples, scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples));
 
         int currentIteration = 0;
 
         while (currentIteration < MAX_ITERATION) {
-            std::cout << "Current iteration: " << currentIteration + 1 << "/" << MAX_ITERATION << std::endl;
+            std::cout << "Current tuning iteration: " << currentIteration + 1 << "/" << MAX_ITERATION << std::endl;
 
-            autotuner->tuneDiameter();
+            graphAnalyser->loadGraph(samples, scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples));
+
+            int diameter = graphAnalyser->calculateDiameter();
+            std::cout << "Current diameter: " << diameter << std::endl;
+
+            bool isGraphSuccessfullyDeleted = graphAnalyser->deleteGraph();
+
+            if (!isGraphSuccessfullyDeleted) {
+                std::cout << "Unsuccessful deletion of the graph." << std::endl;
+            }
+
+            //autotuner->tuneDiameter();
+
+            SuggestedParameters suggestedParameters;
+            suggestedParameters.topology = scaleUpSamplesInfo->getTopology();
+
+            autotuner->addNodeToDiameterTree(diameter, suggestedParameters);
 
             currentIteration++;
         }
