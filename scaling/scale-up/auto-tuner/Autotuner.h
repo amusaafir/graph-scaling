@@ -6,13 +6,27 @@
 #define GRAPH_SCALING_TOOL_AUTOTUNER_H
 
 
+#include <map>
 #include "../../../graph/Graph.h"
+#include "Node.h"
+#include "SuggestedParameters.h"
+#include "model/Model.h"
 
+/**
+ * TODO: Each graph property should be a child of this class, e.g., DiameterAutotuner
+ */
 class Autotuner {
 private:
+    Model* topologies[4] = {};
+    Bridge* bridge;
+    int originalDiameter;
+    Node<int>* diameterRoot;
+    int numberOfSampes = 0;
     int iterations; // Number of attempts to find a proper scaled up match
+
 public:
-    Autotuner(Graph* originalGraph, std::vector<Graph*> &samples);
+    Autotuner(int originalDiameter, int numberOfSamples);
+    SuggestedParameters tuneDiameter();
 };
 
 

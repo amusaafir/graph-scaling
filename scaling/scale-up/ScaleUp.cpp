@@ -23,8 +23,8 @@ void ScaleUp::run() {
     if (isAutotunerEnabled) {
         std::cout << "Starting auto tuner." << std::endl;
 
-        //Autotuner* autotuner = new Autotuner(graph, samples);
-        const int MAX_ITERATION = 5;
+        Autotuner* autotuner = new Autotuner(8, 6);
+        const int MAX_ITERATION = 1;
         int targetDiameter = 16; // Should be obtained from the original graph
 
         /*
@@ -34,15 +34,19 @@ void ScaleUp::run() {
          */
         GraphAnalyser* graphAnalyser = new GraphAnalyser();
 
-        graphAnalyser->loadGraph(samples, scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples));
+        //graphAnalyser->loadGraph(samples, scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples));
 
         int currentIteration = 0;
 
         while (currentIteration < MAX_ITERATION) {
             std::cout << "Current iteration: " << currentIteration + 1 << "/" << MAX_ITERATION << std::endl;
+
+            autotuner->tuneDiameter();
+
+            currentIteration++;
         }
 
-        //delete(autotuner);
+        delete(autotuner);
         delete(graphAnalyser);
     } else {
         bridges = scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples);

@@ -3,6 +3,8 @@
 //
 
 #include "StarModel.h"
+#include "../../topology/Topology.h"
+#include "../../topology/StarTopology.h"
 
 StarModel::StarModel(int originalDiameter, int numberOfSamples, float scalingFactor)
         : Model(originalDiameter, numberOfSamples, scalingFactor) {}
@@ -13,4 +15,8 @@ int StarModel::getMaxDiameter() {
 
 std::string StarModel::getName() {
     return "StarModel";
+}
+
+Topology* StarModel::createTopology(Bridge* bridge) {
+    return new StarTopology(bridge);
 }

@@ -6,6 +6,7 @@
 #define GRAPH_SCALING_TOOL_MODEL_H
 
 #include <string>
+#include "../../topology/Topology.h"
 
 class Model {
 protected:
@@ -18,6 +19,7 @@ public:
 
     virtual int getMaxDiameter() = 0;
     virtual std::string getName() = 0;
+    virtual Topology* createTopology(Bridge*) = 0;
 };
 
 

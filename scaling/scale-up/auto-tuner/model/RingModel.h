@@ -14,6 +14,7 @@ public:
     RingModel(int originalDiameter, int numberOfSamples, float scalingFactor);
     int getMaxDiameter();
     std::string getName();
+    Topology* createTopology(Bridge*);
 };
 
 

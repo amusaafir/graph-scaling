@@ -3,6 +3,7 @@
 //
 
 #include "RingModel.h"
+#include "../../topology/RingTopology.h"
 
 RingModel::RingModel(int originalDiameter, int numberOfSamples, float scalingFactor)
         : Model(originalDiameter, numberOfSamples, scalingFactor) {}
@@ -19,4 +20,8 @@ int RingModel::getMaxDiameter() {
 
 std::string RingModel::getName() {
     return "RingModel";
+}
+
+Topology* RingModel::createTopology(Bridge* bridge) {
+    return new RingTopology(bridge);
 }

@@ -3,6 +3,7 @@
 //
 
 #include "ChainModel.h"
+#include "../../topology/ChainTopology.h"
 
 ChainModel::ChainModel(int originalDiameter, int numberOfSamples, float scalingFactor)
         : Model(originalDiameter, numberOfSamples, scalingFactor) {}
@@ -19,4 +20,8 @@ int ChainModel::getMaxDiameter() {
 
 std::string ChainModel::getName() {
     return "ChainModel";
+}
+
+Topology* ChainModel::createTopology(Bridge* bridge) {
+    return new ChainTopology(bridge);
 }
