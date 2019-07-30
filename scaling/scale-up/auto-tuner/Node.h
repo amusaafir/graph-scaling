@@ -40,31 +40,36 @@ public:
     Node<T>* left = NULL;
     Node<T>* right = NULL;
     bool isHeuristic = false;
+    float deviance;
+    int numberOfHits = 0;
 
-    Node(T value, SuggestedParameters suggestedParameters, bool isHeuristic) {
+    Node(T value, SuggestedParameters suggestedParameters, bool isHeuristic, float deviance) {
         this->value = value;
         this->suggestedParameters = suggestedParameters;
         this->isHeuristic = isHeuristic;
+        this->deviance = deviance;
     }
 
-    void addNode(T val, SuggestedParameters suggestedParameters, bool isHeuristic) {
+    void addNode(T val, SuggestedParameters suggestedParameters, bool isHeuristic, float deviance) {
         if (val <= value) {
             if (left == NULL) {
-                left = new Node<T>(val, suggestedParameters, isHeuristic);
+                left = new Node<T>(val, suggestedParameters, isHeuristic, deviance);
             } else {
-                left->addNode(val, suggestedParameters, isHeuristic);
+                left->addNode(val, suggestedParameters, isHeuristic, deviance);
             }
         } else {
             if (this->right == NULL) {
-                this->right = new Node<T>(val, suggestedParameters, isHeuristic);
+                this->right = new Node<T>(val, suggestedParameters, isHeuristic, deviance);
             } else {
-                this->right->addNode(val, suggestedParameters, isHeuristic);
+                this->right->addNode(val, suggestedParameters, isHeuristic, deviance);
             }
         }
     }
 
     void printPreorderFromCurrentNode(int indent = 0) {
-        std::cout << getTabs(indent) << "Val: " << value << ", Topology: " << suggestedParameters.topology->getName() << ", Heuristic: " << isHeuristic << std::endl;
+        std::cout << getTabs(indent) << "Val: " << value << ", Topology: " << suggestedParameters.topology->getName()
+                  << ", Nr. intercon: " << suggestedParameters.topology->getBridge()->getNumberOfInterconnections()
+                  << ", Heuristic: " << isHeuristic << ", Deviance: " << deviance * 100 << "%" << std::endl;
 
         printChild(indent, "L", left);
         printChild(indent, "R", right);

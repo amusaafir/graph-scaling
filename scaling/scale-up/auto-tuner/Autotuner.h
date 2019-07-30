@@ -18,18 +18,24 @@
 class Autotuner {
 private:
     Model* topologies[4] = {};
+    const float MAX_DEVIANCE = 0.1;
     Bridge* bridge;
     int originalDiameter;
+    int targetDiameter;
     Node<int>* diameterRoot = NULL;
+    Node<int>* currentClosestDiameterNode = NULL;
     int numberOfSampes = 0;
     int iterations; // Number of attempts to find a proper scaled up match
 
 public:
-    Autotuner(int originalDiameter, int numberOfSamples);
+    Autotuner(int originalDiameter, int targetDiameter, int numberOfSamples);
     //SuggestedParameters tuneDiameter();
-    SuggestedParameters findClosestMatch();
+    SuggestedParameters getNewSuggestion();
+    Node<int>* findClosestDiameterNode(Node<int>* node);
     bool isInsideDiameterMargin(int currentDiameter);
     void addNodeToDiameterTree(int diameter, SuggestedParameters suggestedParameters, bool isHeuristic);
+
+    float computeDeviance(int diameter, int targetDiameter);
 };
 
 

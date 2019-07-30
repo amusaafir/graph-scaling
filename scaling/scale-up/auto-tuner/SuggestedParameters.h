@@ -11,6 +11,12 @@
 class SuggestedParameters {
 public:
     Topology* topology;
+
+    std::string getParameterStringRepresentation() {
+        return topology->getName()
+               + ":" + topology->getBridge()->getName()
+               + ":" + std::to_string(topology->getBridge()->getNumberOfInterconnections());
+    }
 };
 
 

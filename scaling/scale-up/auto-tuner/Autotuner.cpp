@@ -13,17 +13,21 @@
 #include "model/ChainModel.h"
 #include "model/RingModel.h"
 #include "model/FullyConnectedModel.h"
+#include <limits>
+#include <cmath>
 
-Autotuner::Autotuner(int originalDiameter, int numberOfSamples) {
+Autotuner::Autotuner(int ORIGINAL_DIAMETER, int targetDiameter, int numberOfSamples) {
     // Build diameter binary tree
     bridge = new RandomBridge(1, false);
 
     const float scalingFactor = 3.0f;
 
-    topologies[0] = new StarModel(originalDiameter, numberOfSamples, scalingFactor);
-    topologies[1] = new ChainModel(originalDiameter, numberOfSamples, scalingFactor);
-    topologies[2] = new RingModel(originalDiameter, numberOfSamples, scalingFactor);
-    topologies[3] = new FullyConnectedModel(originalDiameter, numberOfSamples, scalingFactor);
+    this->targetDiameter = targetDiameter;
+
+    topologies[0] = new StarModel(ORIGINAL_DIAMETER, numberOfSamples, scalingFactor);
+    topologies[1] = new ChainModel(ORIGINAL_DIAMETER, numberOfSamples, scalingFactor);
+    topologies[2] = new RingModel(ORIGINAL_DIAMETER, numberOfSamples, scalingFactor);
+    topologies[3] = new FullyConnectedModel(ORIGINAL_DIAMETER, numberOfSamples, scalingFactor);
 }
 
 void tuneDiameter() {
@@ -59,10 +63,12 @@ void tuneDiameter() {
 void Autotuner::addNodeToDiameterTree(int diameter, SuggestedParameters suggestedParameters, bool isHeuristic) {
     std::cout << "Adding node to diameter tree.." << std::endl;
 
+    float deviance = 1 - computeDeviance(diameter, targetDiameter);
+
     if (diameterRoot == NULL) {
-        diameterRoot = new Node<int>(diameter, suggestedParameters, isHeuristic);
+        diameterRoot = new Node<int>(diameter, suggestedParameters, isHeuristic, deviance);
     } else {
-        diameterRoot->addNode(diameter, suggestedParameters, isHeuristic);
+        diameterRoot->addNode(diameter, suggestedParameters, isHeuristic,  deviance);
     }
 
     // Check if a given new node is not empty and
@@ -72,9 +78,35 @@ void Autotuner::addNodeToDiameterTree(int diameter, SuggestedParameters suggeste
     diameterRoot->printPreorderFromCurrentNode();
 }
 
+float Autotuner::computeDeviance(int diameter, int targetDiameter)  {
+    return ((float) diameter / (float) targetDiameter);
+}
 
-SuggestedParameters Autotuner::findClosestMatch() {
-    SuggestedParameters currentClosestDiameter;
+SuggestedParameters Autotuner::getNewSuggestion() {
+    SuggestedParameters suggestedParams = findClosestDiameterNode(diameterRoot)->suggestedParameters;
+
+    std::cout<<"Closest current suggestion: " << suggestedParams.getParameterStringRepresentation() << std::endl;
+
+    return suggestedParams;
+}
+
+Node<int>* Autotuner::findClosestDiameterNode(Node<int>* node) {
+    if (node == NULL) {
+        return NULL;
+    }
+
+    if (currentClosestDiameterNode == NULL) {
+        currentClosestDiameterNode = node;
+    } else {
+        if (!node->isHeuristic && std::abs(computeDeviance(node->value, targetDiameter)) <= std::abs(computeDeviance(currentClosestDiameterNode->value, targetDiameter))) {
+            currentClosestDiameterNode = node;
+        }
+    }
+
+    findClosestDiameterNode(node->left);
+    findClosestDiameterNode(node->right);
+
+    return currentClosestDiameterNode;
 }
 
 bool Autotuner::isInsideDiameterMargin(int currentDiameter) {
