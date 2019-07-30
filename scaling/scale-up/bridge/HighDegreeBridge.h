@@ -17,7 +17,7 @@ private:
 
     void collectHighDegreeVerticesForGraph(Graph *graph);
 public:
-    HighDegreeBridge(long long numberOfInterconnections, bool forceUndirectedEdges);
+    HighDegreeBridge(long long numberOfInterconnections, bool forceDirectedEdges);
     void addBridgesBetweenGraphs(Graph *sourceGraph, Graph *targetGraph, std::vector<Edge<std::string>>& bridges);
     std::string getName();
 };

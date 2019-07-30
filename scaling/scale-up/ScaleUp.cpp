@@ -4,6 +4,15 @@
 
 #include "ScaleUp.h"
 #include "auto-tuner/Autotuner.h"
+#include "topology/StarTopology.h"
+#include "bridge/RandomBridge.h"
+#include "topology/FullyConnectedTopology.h"
+#include "topology/ChainTopology.h"
+#include "topology/RingTopology.h"
+#include "auto-tuner/model/StarModel.h"
+#include "auto-tuner/model/ChainModel.h"
+#include "auto-tuner/model/FullyConnectedModel.h"
+#include "auto-tuner/model/RingModel.h"
 
 ScaleUp::ScaleUp(Graph* graph, ScalingUpConfig* scaleUpSamplesInfo, std::string outputFolder) {
     this->graph = graph;
@@ -23,7 +32,8 @@ void ScaleUp::run() {
     if (isAutotunerEnabled) {
         std::cout << "Starting auto tuner." << std::endl;
 
-        Autotuner* autotuner = new Autotuner(8, 6);
+        const int ORIGINAL_DIAMETER = 8;
+        Autotuner* autotuner = new Autotuner(ORIGINAL_DIAMETER, 6);
         const int MAX_ITERATION = 2;
         int targetDiameter = 16; // Should be obtained from the original graph
 
@@ -34,8 +44,29 @@ void ScaleUp::run() {
          */
         GraphAnalyser* graphAnalyser = new GraphAnalyser();
 
-
         int currentIteration = 0;
+
+        StarModel starModel(ORIGINAL_DIAMETER, 6, 3);
+        ChainModel chainModel(ORIGINAL_DIAMETER, 6, 3);
+        FullyConnectedModel fullyConnectedModel(ORIGINAL_DIAMETER, 6, 3);
+        RingModel ringModel(ORIGINAL_DIAMETER, 6, 3);
+
+        SuggestedParameters starDefault;
+        starDefault.topology = starModel.createTopology(new RandomBridge(1, false));
+
+        SuggestedParameters fullyConDefault;
+        fullyConDefault.topology = fullyConnectedModel.createTopology(new RandomBridge(1, false));
+
+        SuggestedParameters chainDefault;
+        chainDefault.topology = chainModel.createTopology(new RandomBridge(1, false));
+
+        SuggestedParameters ringDefault;
+        ringDefault.topology = ringModel.createTopology(new RandomBridge(1, false));
+
+        autotuner->addNodeToDiameterTree(ringModel.getMaxDiameter(), ringDefault, true);
+        autotuner->addNodeToDiameterTree(fullyConnectedModel.getMaxDiameter(), fullyConDefault, true);
+        autotuner->addNodeToDiameterTree(chainModel.getMaxDiameter(), chainDefault, true);
+        autotuner->addNodeToDiameterTree(starModel.getMaxDiameter(), starDefault, true);
 
         while (currentIteration < MAX_ITERATION) {
             std::cout << "Current tuning iteration: " << currentIteration + 1 << "/" << MAX_ITERATION << std::endl;
@@ -51,12 +82,10 @@ void ScaleUp::run() {
                 std::cout << "Unsuccessful deletion of the graph." << std::endl;
             }
 
-            //autotuner->tuneDiameter();
-
             SuggestedParameters suggestedParameters;
             suggestedParameters.topology = scaleUpSamplesInfo->getTopology();
 
-            autotuner->addNodeToDiameterTree(diameter, suggestedParameters);
+            autotuner->addNodeToDiameterTree(diameter, suggestedParameters, false);
 
             currentIteration++;
         }

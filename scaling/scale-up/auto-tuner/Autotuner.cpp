@@ -26,8 +26,8 @@ Autotuner::Autotuner(int originalDiameter, int numberOfSamples) {
     topologies[3] = new FullyConnectedModel(originalDiameter, numberOfSamples, scalingFactor);
 }
 
-SuggestedParameters Autotuner::tuneDiameter() {
-    std::cout << "Tuning diameter:" << std::endl;
+void tuneDiameter() {
+    /*std::cout << "Tuning diameter:" << std::endl;
 
     if (diameterRoot == NULL) {
         // Build initial diameter tree
@@ -52,15 +52,17 @@ SuggestedParameters Autotuner::tuneDiameter() {
     diameterRoot->printPreorderFromCurrentNode();
 
     return findClosestMatch();
+
+     */
 }
 
-void Autotuner::addNodeToDiameterTree(int diameter, SuggestedParameters suggestedParameters) {
+void Autotuner::addNodeToDiameterTree(int diameter, SuggestedParameters suggestedParameters, bool isHeuristic) {
     std::cout << "Adding node to diameter tree.." << std::endl;
 
     if (diameterRoot == NULL) {
-        diameterRoot = new Node<int>(diameter, suggestedParameters);
+        diameterRoot = new Node<int>(diameter, suggestedParameters, isHeuristic);
     } else {
-        diameterRoot->addNode(diameter, suggestedParameters);
+        diameterRoot->addNode(diameter, suggestedParameters, isHeuristic);
     }
 
     // Check if a given new node is not empty and
@@ -73,8 +75,6 @@ void Autotuner::addNodeToDiameterTree(int diameter, SuggestedParameters suggeste
 
 SuggestedParameters Autotuner::findClosestMatch() {
     SuggestedParameters currentClosestDiameter;
-
-
 }
 
 bool Autotuner::isInsideDiameterMargin(int currentDiameter) {

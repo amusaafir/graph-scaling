@@ -13,7 +13,7 @@ private:
     long long getRandomVertexFromGraph(Graph* graph);
 
 public:
-    RandomBridge(long long numberOfInterconnections, bool forceUndirectedEdges);
+    RandomBridge(long long numberOfInterconnections, bool forceDirectedEdges);
     void addBridgesBetweenGraphs(Graph *sourceGraph, Graph *targetGraph, std::vector<Edge<std::string>>& bridges);
     std::string getName();
 };

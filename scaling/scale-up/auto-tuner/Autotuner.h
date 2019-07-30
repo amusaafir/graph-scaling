@@ -26,10 +26,10 @@ private:
 
 public:
     Autotuner(int originalDiameter, int numberOfSamples);
-    SuggestedParameters tuneDiameter();
+    //SuggestedParameters tuneDiameter();
     SuggestedParameters findClosestMatch();
     bool isInsideDiameterMargin(int currentDiameter);
-    void addNodeToDiameterTree(int diameter, SuggestedParameters suggestedParameters);
+    void addNodeToDiameterTree(int diameter, SuggestedParameters suggestedParameters, bool isHeuristic);
 };
 
 

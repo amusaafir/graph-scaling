@@ -39,30 +39,32 @@ public:
     T value;
     Node<T>* left = NULL;
     Node<T>* right = NULL;
+    bool isHeuristic = false;
 
-    Node(T value, SuggestedParameters suggestedParameters) {
+    Node(T value, SuggestedParameters suggestedParameters, bool isHeuristic) {
         this->value = value;
         this->suggestedParameters = suggestedParameters;
+        this->isHeuristic = isHeuristic;
     }
 
-    void addNode(T val, SuggestedParameters suggestedParameters) {
-        if (val < value) {
+    void addNode(T val, SuggestedParameters suggestedParameters, bool isHeuristic) {
+        if (val <= value) {
             if (left == NULL) {
-                left = new Node<T>(val, suggestedParameters);
+                left = new Node<T>(val, suggestedParameters, isHeuristic);
             } else {
-                left->addNode(val, suggestedParameters);
+                left->addNode(val, suggestedParameters, isHeuristic);
             }
         } else {
             if (this->right == NULL) {
-                this->right = new Node<T>(val, suggestedParameters);
+                this->right = new Node<T>(val, suggestedParameters, isHeuristic);
             } else {
-                this->right->addNode(val, suggestedParameters);
+                this->right->addNode(val, suggestedParameters, isHeuristic);
             }
         }
     }
 
     void printPreorderFromCurrentNode(int indent = 0) {
-        std::cout << getTabs(indent) << "Val: " << value << ", Topology: " << suggestedParameters.topology->getName() << std::endl;
+        std::cout << getTabs(indent) << "Val: " << value << ", Topology: " << suggestedParameters.topology->getName() << ", Heuristic: " << isHeuristic << std::endl;
 
         printChild(indent, "L", left);
         printChild(indent, "R", right);
