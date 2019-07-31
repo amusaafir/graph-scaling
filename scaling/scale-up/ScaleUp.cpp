@@ -32,10 +32,10 @@ void ScaleUp::run() {
     if (isAutotunerEnabled) {
         std::cout << "Starting auto tuner." << std::endl;
 
-        const int TARGET_DIAMETER = 16; // Should be obtained from the original graph
+        const int TARGET_DIAMETER = 30; // Should be obtained from the original graph
         const int ORIGINAL_DIAMETER = 8;
         Autotuner* autotuner = new Autotuner(ORIGINAL_DIAMETER, TARGET_DIAMETER, 6);
-        const int MAX_ITERATION = 2;
+        const int MAX_ITERATION = 40;
 
         /*
           We'll assume here that the original graph is analysed and the diameter is known.
@@ -55,43 +55,65 @@ void ScaleUp::run() {
 
         SuggestedParameters starDefault;
         starDefault.topology = starModel.createTopology(new RandomBridge(1, false));
-        usedParameters.insert(starDefault.getParameterStringRepresentation());
+        //usedParameters.insert(starDefault.getParameterStringRepresentation());
 
         SuggestedParameters fullyConDefault;
         fullyConDefault.topology = fullyConnectedModel.createTopology(new RandomBridge(1, false));
-        usedParameters.insert(fullyConDefault.getParameterStringRepresentation());
+       // usedParameters.insert(fullyConDefault.getParameterStringRepresentation());
 
         SuggestedParameters chainDefault;
         chainDefault.topology = chainModel.createTopology(new RandomBridge(1, false));
-        usedParameters.insert(chainDefault.getParameterStringRepresentation());
+       //usedParameters.insert(chainDefault.getParameterStringRepresentation());
 
         SuggestedParameters ringDefault;
         ringDefault.topology = ringModel.createTopology(new RandomBridge(1, false));
-        usedParameters.insert(ringDefault.getParameterStringRepresentation());
+        //usedParameters.insert(ringDefault.getParameterStringRepresentation());
 
-        autotuner->addNodeToDiameterTree(ringModel.getMaxDiameter(), ringDefault, true);
-        autotuner->addNodeToDiameterTree(fullyConnectedModel.getMaxDiameter(), fullyConDefault, true);
-        autotuner->addNodeToDiameterTree(chainModel.getMaxDiameter(), chainDefault, true);
-        autotuner->addNodeToDiameterTree(starModel.getMaxDiameter(), starDefault, true);
+        SuggestedParameters suggestedParametersArr[4];
+        suggestedParametersArr[0] = starDefault;
+        suggestedParametersArr[1] = chainDefault;
+        suggestedParametersArr[2] = ringDefault;
+        suggestedParametersArr[3] = fullyConDefault;
+
+        //autotuner->addNodeToDiameterTree(ringModel.getMaxDiameter(), ringDefault, true);
+        //autotuner->addNodeToDiameterTree(fullyConnectedModel.getMaxDiameter(), fullyConDefault, true);
+        //autotuner->addNodeToDiameterTree(chainModel.getMaxDiameter(), chainDefault, true);
+        //autotuner->addNodeToDiameterTree(starModel.getMaxDiameter(), starDefault, true);
 
         SuggestedParameters suggestedParameters;
-        suggestedParameters.topology = scaleUpSamplesInfo->getTopology();
+        //suggestedParameters.topology = scaleUpSamplesInfo->getTopology();
 
-        while (currentIteration < MAX_ITERATION) {
+
+
+
+        while (currentIteration < MAX_ITERATION + 4) {
+
+
             std::cout << "Current tuning iteration: " << currentIteration + 1 << "/" << MAX_ITERATION
                       << ", Target diameter: " << TARGET_DIAMETER << std::endl;
 
-            graphAnalyser->loadGraph(samples, scaleUpSamplesInfo->getTopology()->getBridgeEdges(samples));
+            std::cout<< "Loading graph.." << std::endl;
 
+            std::vector<Edge<std::string>> bridges;
+            if (currentIteration < 4) {
+                bridges = suggestedParametersArr[currentIteration].topology->getBridgeEdges(samples);
+                suggestedParameters = suggestedParametersArr[currentIteration];
+            } else {
+                bridges = suggestedParameters.topology->getBridgeEdges(samples);
+            }
+            graphAnalyser->loadGraph(samples, bridges);
+
+            std::cout << "Analying diameter.." << std::endl;
             int diameter = graphAnalyser->calculateDiameter();
             std::cout << "Current diameter: " << diameter << std::endl;
 
             bool isGraphSuccessfullyDeleted = graphAnalyser->deleteGraph();
 
-            if (!isGraphSuccessfullyDeleted) {
+            if (isGraphSuccessfullyDeleted) {
+                std::cout << "Graph successfully deleted." << std::endl;
+            } else {
                 std::cout << "Unsuccessful deletion of the graph." << std::endl;
             }
-
 
             usedParameters.insert(suggestedParameters.getParameterStringRepresentation());
 
@@ -102,8 +124,10 @@ void ScaleUp::run() {
                 std::cout << elem << std::endl;
             }
 
-            suggestedParameters = autotuner->getNewSuggestion();
-
+            if (currentIteration > 3) {
+                std::cout<<"New suggestion.." << std::endl;
+                suggestedParameters = autotuner->getNewSuggestion();
+            }
             currentIteration++;
         }
 

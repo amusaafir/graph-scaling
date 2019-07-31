@@ -17,6 +17,8 @@ public:
     virtual std::string getName() = 0;
 
     long long getNumberOfInterconnections();
+
+    void setNumberOfInterconnections(long long numberOfInterConnections);
 };
 
 

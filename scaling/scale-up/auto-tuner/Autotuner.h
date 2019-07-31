@@ -31,7 +31,8 @@ public:
     Autotuner(int originalDiameter, int targetDiameter, int numberOfSamples);
     //SuggestedParameters tuneDiameter();
     SuggestedParameters getNewSuggestion();
-    Node<int>* findClosestDiameterNode(Node<int>* node);
+    Node<int>* findRealClosestDiameterNode();
+    void findClosestDiameterNode(Node<int>* node);
     bool isInsideDiameterMargin(int currentDiameter);
     void addNodeToDiameterTree(int diameter, SuggestedParameters suggestedParameters, bool isHeuristic);
 

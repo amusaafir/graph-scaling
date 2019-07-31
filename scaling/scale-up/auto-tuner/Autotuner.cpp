@@ -13,8 +13,10 @@
 #include "model/ChainModel.h"
 #include "model/RingModel.h"
 #include "model/FullyConnectedModel.h"
+#include "../bridge/HighDegreeBridge.h"
 #include <limits>
 #include <cmath>
+#include <assert.h>
 
 Autotuner::Autotuner(int ORIGINAL_DIAMETER, int targetDiameter, int numberOfSamples) {
     // Build diameter binary tree
@@ -83,30 +85,79 @@ float Autotuner::computeDeviance(int diameter, int targetDiameter)  {
 }
 
 SuggestedParameters Autotuner::getNewSuggestion() {
-    SuggestedParameters suggestedParams = findClosestDiameterNode(diameterRoot)->suggestedParameters;
+    Node<int>* currentClosestDiameterNode = findRealClosestDiameterNode();
 
-    std::cout<<"Closest current suggestion: " << suggestedParams.getParameterStringRepresentation() << std::endl;
+    assert(currentClosestDiameterNode != NULL);
 
-    return suggestedParams;
-}
+    SuggestedParameters suggestedParams = currentClosestDiameterNode->suggestedParameters;
 
-Node<int>* Autotuner::findClosestDiameterNode(Node<int>* node) {
-    if (node == NULL) {
-        return NULL;
-    }
+    std::cout << "Closest current suggestion: " << suggestedParams.getParameterStringRepresentation() <<  " (" <<  currentClosestDiameterNode->value << ")" << std::endl;
 
-    if (currentClosestDiameterNode == NULL) {
-        currentClosestDiameterNode = node;
+    currentClosestDiameterNode->numberOfHits++;
+
+    SuggestedParameters newlySuggestedParams;
+
+    long long newInterConnections = currentClosestDiameterNode->suggestedParameters.topology->getBridge()->getNumberOfInterconnections() * 2;
+
+
+    // Apply magic
+    if (currentClosestDiameterNode->value > targetDiameter) {
+        std::cout<<"Adding more interconnections" << std::endl;
+        // Add more interconnections
+        newlySuggestedParams.topology = suggestedParams.topology;
+
+        assert(newlySuggestedParams.topology != NULL);
+
+        newlySuggestedParams.topology->getBridge()->setNumberOfInterconnections(newInterConnections);
     } else {
-        if (!node->isHeuristic && std::abs(computeDeviance(node->value, targetDiameter)) <= std::abs(computeDeviance(currentClosestDiameterNode->value, targetDiameter))) {
-            currentClosestDiameterNode = node;
+        std::cout<<"Moving to new topology: " << std::endl;
+        // Move to different topology
+        if (suggestedParams.topology->getName().compare("Chain") == 0) {
+            std::cout << "Using chain with high degree bridges. " << std::endl;
+            newlySuggestedParams.topology = new ChainTopology(new HighDegreeBridge(newInterConnections, false));
+            if (suggestedParams.topology->getBridge()->getName().compare("HighDegreeBridge") == 0) {
+                std::cout << "Recommendation: Use smaller sample sizes. " << std::endl;
+                exit(1);
+            }
+        } else if (suggestedParams.topology->getName().compare("FullyConnected") == 0) {
+            std::cout << "Star"<< std::endl;
+            newlySuggestedParams.topology = new StarTopology(new RandomBridge(newInterConnections, false));
+        } else if (suggestedParams.topology->getName().compare("Star") == 0) {
+            std::cout << "Ring"<< std::endl;
+            newlySuggestedParams.topology = new RingTopology(new RandomBridge(newInterConnections, false));
+        }  else {
+            std::cout << "Chain"<< std::endl;
+            newlySuggestedParams.topology = new ChainTopology(new RandomBridge(newInterConnections, false));
         }
     }
 
-    findClosestDiameterNode(node->left);
-    findClosestDiameterNode(node->right);
+    return newlySuggestedParams;
+}
+
+Node<int>* Autotuner::findRealClosestDiameterNode() {
+
+    findClosestDiameterNode(diameterRoot);
 
     return currentClosestDiameterNode;
+}
+
+void Autotuner::findClosestDiameterNode(Node<int>* node) {
+    if (node == NULL) {
+        return;
+    }
+
+    if (currentClosestDiameterNode == NULL) {
+        if (!node->isHeuristic) {
+            currentClosestDiameterNode = node;
+        }
+    } else {
+        if (!node->isHeuristic && (std::abs(computeDeviance(currentClosestDiameterNode->value, targetDiameter))
+                                  <= std::abs(computeDeviance(node->value, targetDiameter)))) {
+            currentClosestDiameterNode = node;
+        }
+    }
+    findClosestDiameterNode(node->left);
+    findClosestDiameterNode(node->right);
 }
 
 bool Autotuner::isInsideDiameterMargin(int currentDiameter) {

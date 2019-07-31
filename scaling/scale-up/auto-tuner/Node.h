@@ -68,8 +68,10 @@ public:
 
     void printPreorderFromCurrentNode(int indent = 0) {
         std::cout << getTabs(indent) << "Val: " << value << ", Topology: " << suggestedParameters.topology->getName()
+                  << ", Intercon type: " << suggestedParameters.topology->getBridge()->getName()
                   << ", Nr. intercon: " << suggestedParameters.topology->getBridge()->getNumberOfInterconnections()
-                  << ", Heuristic: " << isHeuristic << ", Deviance: " << deviance * 100 << "%" << std::endl;
+                  << ", Heuristic: " << isHeuristic << ", Deviance: " << deviance * 100 << "%"
+                  << ", Hits: " << numberOfHits << std::endl;
 
         printChild(indent, "L", left);
         printChild(indent, "R", right);

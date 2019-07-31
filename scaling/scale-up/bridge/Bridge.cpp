@@ -12,3 +12,7 @@ Bridge::Bridge(long long numberOfInterconnections, bool addDirectedBridges) {
 long long Bridge::getNumberOfInterconnections() {
         return this->numberOfInterconnections;
 }
+
+void Bridge::setNumberOfInterconnections(long long numberOfInterconnections) {
+        this->numberOfInterconnections = numberOfInterconnections;
+}
