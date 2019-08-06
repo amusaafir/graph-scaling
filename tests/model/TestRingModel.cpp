@@ -8,5 +8,5 @@
 TEST(RingModel, testMaxDiameter) {
     RingModel ringModel(8, 6, 3);
 
-ASSERT_EQ(ringModel.getMaxDiameter(), 54);
+ASSERT_EQ(ringModel.getMaxDiameter(), 27);
 }
