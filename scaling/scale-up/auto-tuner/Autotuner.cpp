@@ -151,8 +151,7 @@ void Autotuner::findClosestDiameterNode(Node<int>* node) {
             currentClosestDiameterNode = node;
         }
     } else {
-        if (!node->isHeuristic && (std::abs(computeDeviance(currentClosestDiameterNode->value, targetDiameter))
-                                  <= std::abs(computeDeviance(node->value, targetDiameter)))) {
+        if (!node->isHeuristic && std::abs(node->value - targetDiameter) <= std::abs(currentClosestDiameterNode->value-targetDiameter)) {
             currentClosestDiameterNode = node;
         }
     }
