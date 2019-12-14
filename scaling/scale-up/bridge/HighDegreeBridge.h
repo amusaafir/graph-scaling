@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include "Bridge.h"
+#include <random>
 
 class HighDegreeBridge : public Bridge {
 private:
