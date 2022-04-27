@@ -1,7 +1,9 @@
-# Sample Spray (graph scaling tool)
+# Graph Scaling Tool
 #### A Sampling-based Method for Scaling Graph Datasets
 
 This tool allows users to scale a graph up or down using sampling as a basis for both operations.
+
+**Paper:** https://dl.acm.org/doi/10.1145/3358960.3379144
 
 ## Scaling Guidelines and Results
 
@@ -69,6 +71,3 @@ Example with 2 nodes, "wiki" input file, 0.5 sampling fraction, 32 GB CPU memory
 Note that the input file must be an edge list, ordered by source vertex, and then by destination vertex. The number of vertices and edges in the graph must be denoted at the beginning of the file, on a separate rule, like:
 "! nVertices nEdges" (without quotes)
 The input graph should not have 'missing' vertices (vertices without incoming/outgoing edges and are therefore not present in the input file). 
-
-
-
