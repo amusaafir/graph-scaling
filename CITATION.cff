@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+preferred-citation:
+  type: "conference-paper"
+  title: "A Sampling-Based Tool for Scaling Graph Datasets"
+  conference:
+    name: "International Conference on Performance Engineering"
+  doi: "10.1145/3358960.3379144"
+  year: "2020"
+  start: "289"
+  end: "300"
+  authors:
+  - family-names: "Musaafir"
+    given-names: "Ahmed"
+  - family-names: "Uta"
+    given-names: "Alexandru"
+  - family-names: "Dreuning"
+    given-names: "Henk"
+  - family-names: "Varbanescu"
+    given-names: "Ana"
