@@ -66,7 +66,8 @@ Run on a cluster with:
     prun -np <number of compute nodes> -v -1 -reserve <reservation id> -sge-script $PRUN_ETC/prun-openmpi sample <input file> <output file> <sampling fraction> <CPU mem limit (bytes, per node)> <GPU mem limit (bytes, per node)>
 
 Example with 2 nodes, "wiki" input file, 0.5 sampling fraction, 32 GB CPU memory and 12 GB GPU memory limits:
-    `prun -np 2 -v -1 -reserve <reservation id> -sge-script $PRUN_ETC/prun-openmpi sample OUTPUT_PATH 0.5 34359738368 12884901888`
+
+    prun -np 2 -v -1 -reserve <reservation id> -sge-script $PRUN_ETC/prun-openmpi sample OUTPUT_PATH 0.5 34359738368 12884901888
 
 Note that the input file must be an edge list, ordered by source vertex, and then by destination vertex. The number of vertices and edges in the graph must be denoted at the beginning of the file, on a separate rule, like:
 "! nVertices nEdges" (without quotes)
